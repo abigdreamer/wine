@@ -1,0 +1,63 @@
+import { Home, MessageSquare, History, User } from "lucide-react-native";
+import React from "react";
+import { useTheme } from "../store/theme-store";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+import { MainRoutes } from '../types/navigation';
+import HomeScreen from '../screens/Home';
+import HistoryScreen from '../screens/History';
+import SessionsScreen from '../screens/Sessions';
+import ProfileScreen from '../screens/Profile';
+
+const Tab = createBottomTabNavigator();
+
+export default function BottomTabNavigation() {
+    const { colors } = useTheme();
+
+    return (
+        <Tab.Navigator
+            screenOptions={{
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textSecondary,
+                tabBarStyle: {
+                    backgroundColor: colors.surface,
+                    borderTopColor: colors.border,
+                },
+                headerShown: false,
+            }}
+        >
+            <Tab.Screen
+                name={MainRoutes.Home} 
+                component={HomeScreen}
+                options={{
+                    title: MainRoutes.Home,
+                    tabBarIcon: ({ color }) => <Home size={24} color={color} />,
+                }}
+            />
+            <Tab.Screen 
+                name={MainRoutes.History} 
+                component={HistoryScreen}
+                options={{
+                    title: MainRoutes.History,
+                    tabBarIcon: ({ color }) => <History size={24} color={color} />,
+                }}
+            />
+            <Tab.Screen 
+                name={MainRoutes.Profile} 
+                component={ProfileScreen}
+                options={{
+                    title: MainRoutes.Profile,
+                    tabBarIcon: ({ color }) => <User size={24} color={color} />,
+                }}
+            />
+            <Tab.Screen 
+                name={MainRoutes.Sessions} 
+                component={SessionsScreen} 
+                options={{
+                    title: MainRoutes.Sessions,
+                    tabBarIcon: ({ color }) => <MessageSquare size={24} color={color} />,
+                }}
+            />
+        </Tab.Navigator>
+    )
+}
