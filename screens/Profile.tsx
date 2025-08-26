@@ -20,7 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { useAuth } from "../store/auth-store";
-import { useTheme } from "../store/theme-store";
+import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { MainRoutes, ProfileScreenProps } from "../types/navigation";
 

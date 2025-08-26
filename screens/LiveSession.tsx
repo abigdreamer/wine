@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Send, ArrowLeft, MoreVertical } from "lucide-react-native";
-import { useTheme } from "../store/theme-store";
+import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Message } from "../types/message";
 import { LiveSessionScreenProps } from "../types/navigation";

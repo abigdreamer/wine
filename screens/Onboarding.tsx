@@ -2,9 +2,8 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from "react-native";
 import LinearGradient from 'react-native-linear-gradient';
 import { Brain, Zap, MessageCircle } from "lucide-react-native";
-import { useTheme } from "../store/theme-store";
 import { MainRoutes, OnboardingScreenProps } from "../types/navigation";
-
+import { useTheme } from "../theme/theme-context";
 const { width, height } = Dimensions.get("window");
 
 export default function OnboardingScreen({ navigation }: OnboardingScreenProps) {
