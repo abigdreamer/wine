@@ -1,6 +1,6 @@
 import { Home, MessageSquare, History, User } from "lucide-react-native";
 import React from "react";
-import { useTheme } from "../store/theme-store";
+import { useTheme } from "../theme/theme-context";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { MainRoutes } from '../types/navigation';

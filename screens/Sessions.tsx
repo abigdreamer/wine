@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MessageCircle, Clock, TrendingUp } from "lucide-react-native";
-import { useTheme } from "../store/theme-store";
+import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Question } from "../types/question";
 import { MainRoutes, SessionsScreenProps } from "../types/navigation";

@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react-native";
 import { useAuth } from "../store/auth-store";
-import { useTheme } from "../store/theme-store";
+import { useTheme } from "../theme/theme-context";
 import { LoginScreenProps } from "../types/navigation";
 import { MainRoutes } from "../types/navigation";
 

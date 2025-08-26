@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Mic, Send, Zap, MessageCircle, Clock } from "lucide-react-native";
-import { useTheme } from "../store/theme-store";
+import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { HomeScreenProps, MainRoutes } from "../types/navigation";
 
