@@ -1,63 +1,75 @@
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
 
 export enum MainRoutes {
-    Onboarding = 'Onboarding',
-    Login = 'login',
-    Home = 'Home',
-    History = 'History',
-    Profile = 'Profile',
-    Sessions = 'Sessions',
-    BottomTab = 'BottomTab',
-    LiveSession = 'LiveSession'
+  Onboarding = "Onboarding",
+  Login = "login",
+  Home = "Home",
+  History = "History",
+  Profile = "Profile",
+  Sessions = "Sessions",
+  BottomTab = "BottomTab",
+  LiveSession = "LiveSession",
+  Preferences = "Preferences",
+  UserInfo = "UserInfo",
 }
 
 export type RootStackParamList = {
-    [MainRoutes.Login]: undefined
-    [MainRoutes.Onboarding]: undefined
-    [MainRoutes.Home]: undefined
-    [MainRoutes.History]: undefined
-    [MainRoutes.Profile]: undefined
-    [MainRoutes.Sessions]: undefined
-    [MainRoutes.BottomTab]: undefined
-    [MainRoutes.LiveSession]: {
-        id: string;
-    }
-}
+  [MainRoutes.Login]: undefined;
+  [MainRoutes.Onboarding]: undefined;
+  [MainRoutes.Home]: undefined;
+  [MainRoutes.History]: undefined;
+  [MainRoutes.Profile]: undefined;
+  [MainRoutes.Sessions]: undefined;
+  [MainRoutes.BottomTab]: undefined;
+  [MainRoutes.LiveSession]: {
+    id: string;
+  };
+  [MainRoutes.Preferences]: undefined;
+  [MainRoutes.UserInfo]: undefined;
+};
 
 export type MainNavigationProp<
-    RouteName extends keyof RootStackParamList = MainRoutes
-> = NativeStackNavigationProp<RootStackParamList, RouteName>
+  RouteName extends keyof RootStackParamList = MainRoutes
+> = NativeStackNavigationProp<RootStackParamList, RouteName>;
 
 export type LoginScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.Login>
-}
+  navigation: MainNavigationProp<MainRoutes.Login>;
+};
 
 export type OnboardingScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.Onboarding>
-}
+  navigation: MainNavigationProp<MainRoutes.Onboarding>;
+};
 
 export type BottomTabScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.BottomTab>
-}
+  navigation: MainNavigationProp<MainRoutes.BottomTab>;
+};
 
 export type HomeScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.Home>
-}
+  navigation: MainNavigationProp<MainRoutes.Home>;
+};
 
 export type HistoryScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.History>
-}
+  navigation: MainNavigationProp<MainRoutes.History>;
+};
 
 export type SessionsScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.Sessions>
-}
+  navigation: MainNavigationProp<MainRoutes.Sessions>;
+};
 
 export type ProfileScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.Profile>
-}
+  navigation: MainNavigationProp<MainRoutes.Profile>;
+};
 
 export type LiveSessionScreenProps = {
-    navigation: MainNavigationProp<MainRoutes.LiveSession>
-    route: RouteProp<RootStackParamList, MainRoutes.LiveSession>
-}
+  navigation: MainNavigationProp<MainRoutes.LiveSession>;
+  route: RouteProp<RootStackParamList, MainRoutes.LiveSession>;
+};
+
+export type PreferencesScreenProps = {
+  navigation: MainNavigationProp<MainRoutes.Preferences>;
+};
+
+export type UserInfoScreenProps = {
+  navigation: MainNavigationProp<MainRoutes.UserInfo>;
+};
