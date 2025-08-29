@@ -2,6 +2,7 @@ import { Home, MessageSquare, History, User } from "lucide-react-native";
 import React from "react";
 import { useTheme } from "../theme/theme-context";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 
 import { MainRoutes } from '../types/navigation';
 import HomeScreen from '../screens/Home';
@@ -13,6 +14,7 @@ const Tab = createBottomTabNavigator();
 
 export default function BottomTabNavigation() {
     const { colors } = useTheme();
+    const { t } = useTranslation();
 
     return (
         <Tab.Navigator
@@ -30,7 +32,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.Home} 
                 component={HomeScreen}
                 options={{
-                    title: MainRoutes.Home,
+                    title: t('navigation.home'),
                     tabBarIcon: ({ color }) => <Home size={24} color={color} />,
                 }}
             />
@@ -38,7 +40,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.History} 
                 component={HistoryScreen}
                 options={{
-                    title: MainRoutes.History,
+                    title: t('navigation.history'),
                     tabBarIcon: ({ color }) => <History size={24} color={color} />,
                 }}
             />
@@ -46,7 +48,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.Profile} 
                 component={ProfileScreen}
                 options={{
-                    title: MainRoutes.Profile,
+                    title: t('navigation.profile'),
                     tabBarIcon: ({ color }) => <User size={24} color={color} />,
                 }}
             />
@@ -54,7 +56,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.Sessions} 
                 component={SessionsScreen} 
                 options={{
-                    title: MainRoutes.Sessions,
+                    title: t('navigation.sessions'),
                     tabBarIcon: ({ color }) => <MessageSquare size={24} color={color} />,
                 }}
             />

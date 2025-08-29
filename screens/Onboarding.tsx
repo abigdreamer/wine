@@ -20,11 +20,11 @@ export default function OnboardingScreen({ navigation }: OnboardingScreenProps) 
                 </View>
 
                 <Text style={[styles.title, { color: colors.white }]}>
-                    AI Q&A Assistant
+                    AI Q&A Concierge
                 </Text>
 
                 <Text style={[styles.subtitle, { color: colors.white + "CC" }]}>
-                    Get instant, intelligent answers to any question with real-time AI assistance
+                    Get instant, intelligent answers to any question with real-time AI Concierge
                 </Text>
 
                 <View style={styles.featuresContainer}>

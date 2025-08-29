@@ -1,0 +1,140 @@
+{
+  "common": {
+    "continue": "Continue",
+    "done": "Done",
+    "cancel": "Cancel",
+    "save": "Save",
+    "active": "Active",
+    "back": "Back",
+    "minutesAgo": "{{minutes}}m ago",
+    "confidence": "{{percent}}% confidence",
+    "loading": "Loading...",
+    "error": "Error"
+  },
+  "navigation": {
+    "home": "Home",
+    "history": "History",
+    "sessions": "Sessions",
+    "profile": "Profile"
+  },
+  "preferences": {
+    "title": "Personalize Your Concierge",
+    "subtitle": "Choose your Concierge's personality and preferred language",
+    "selectPersonality": "Select Personality",
+    "selectLanguage": "Select Language",
+    "selectTheme": "Select Theme",
+    "selectFont": "Select Font",
+    "selectLanguagePrompt": "Choose a language...",
+    "selectThemePrompt": "Choose a theme...",
+    "selectFontPrompt": "Choose a font...",
+    "selectBoth": "Please select all required options",
+    "saveError": "Failed to save preferences",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "fonts": {
+      "helvetica": "Helvetica",
+      "roboto": "Roboto",
+      "openSans": "Open Sans",
+      "patrickHand": "Patrick Hand"
+    },
+    "personalities": {
+      "friendly": "Friendly",
+      "professional": "Professional",
+      "humorous": "Humorous",
+      "casual": "Casual"
+    }
+  },
+  "home": {
+    "greeting": "Hello! 👋",
+    "subtitle": "What would you like to know today?",
+    "inputPlaceholder": "Ask me anything...",
+    "quickActions": "Quick Actions",
+    "actions": {
+      "askAi": {
+        "title": "Ask AI",
+        "subtitle": "Get instant answers"
+      },
+      "liveSession": {
+        "title": "Live Session",
+        "subtitle": "Real-time chat"
+      },
+      "history": {
+        "title": "Browse History",
+        "subtitle": "Past conversations"
+      }
+    }
+  },
+  "sessions": {
+    "title": "Live Sessions",
+    "subtitle": "{{count}} active conversations",
+    "empty": {
+      "title": "No Active Sessions",
+      "subtitle": "Start a new conversation from the home screen",
+      "action": "Ask a Question"
+    }
+  },
+  "history": {
+    "title": "History",
+    "empty": {
+      "title": "No History",
+      "subtitle": "Your conversation history will appear here"
+    },
+    "clearAll": "Clear All",
+    "clearConfirm": "Are you sure you want to clear all history?"
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "preferences": "Preferences",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "about": "About",
+    "signOut": "Sign Out"
+  },
+  "login": {
+    "title": "Welcome",
+    "subtitle": "Sign in to continue",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign Up",
+    "error": {
+      "invalidEmail": "Please enter a valid email",
+      "invalidPassword": "Password must be at least 6 characters"
+    }
+  },
+  "liveSession": {
+    "title": "Live Chat",
+    "inputPlaceholder": "Type your message...",
+    "sendMessage": "Send",
+    "endSession": "End Session",
+    "sessionEnded": "Session Ended",
+    "typing": "AI is typing..."
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Wine",
+      "subtitle": "Your personal wine concierge"
+    },
+    "features": {
+      "title": "Features",
+      "chat": "Chat with AI about wines",
+      "learn": "Learn about wine regions",
+      "pair": "Get food pairing suggestions"
+    },
+    "start": "Get Started"
+  },
+  "userInfo": {
+    "title": "Your Information",
+    "name": "Name",
+    "website": "Website",
+    "nameRequired": "Please enter your name",
+    "websiteRequired": "Please enter your website",
+    "save": "Save Changes"
+  }
+}

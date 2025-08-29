@@ -1,0 +1,4 @@
+/Applications/Development/busybeaver/wine/android/app/.cxx/Debug/b645f3z5/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/foo.dir
+/Applications/Development/busybeaver/wine/android/app/.cxx/Debug/b645f3z5/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/boo.dir
+/Applications/Development/busybeaver/wine/android/app/.cxx/Debug/b645f3z5/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/edit_cache.dir
+/Applications/Development/busybeaver/wine/android/app/.cxx/Debug/b645f3z5/x86_64/CMakeFiles/_CMakeLTOTest-CXX/bin/CMakeFiles/rebuild_cache.dir

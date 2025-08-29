@@ -207,7 +207,7 @@ export default function LiveSessionScreen({ navigation, route }: LiveSessionScre
                         Live Session
                     </Text>
                     <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                        AI Assistant
+                        AI Concierge
                     </Text>
                 </View>
 
