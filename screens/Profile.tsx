@@ -21,12 +21,14 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "../store/auth-store";
 import { useTheme } from "../theme/theme-context";
+import { useFont } from "../theme/font-context";
 import { useQuestions } from "../store/question-store";
 import { MainRoutes, ProfileScreenProps } from "../types/navigation";
 
 export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const { user, logout } = useAuth();
-  const { colors, isDark, toggleTheme } = useTheme();
+  const { colors, isDark, setTheme } = useTheme();
+  const { textStyles } = useFont();
   const { questions } = useQuestions();
 
   const stats = {
@@ -65,7 +67,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       icon: Settings,
       title: "Settings",
       subtitle: "App preferences",
-      onPress: () => {},
+      onPress: () => navigation.navigate(MainRoutes.Preferences),
     },
   ];
 
@@ -77,39 +79,39 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <User size={32} color={colors.white} />
           </View>
           
-          <Text style={[styles.name, { color: colors.text }]}>
+          <Text style={[styles.name, { color: colors.text }, textStyles.title]}>
             {user?.email || "User"}
           </Text>
           
-          <Text style={[styles.email, { color: colors.textSecondary }]}>
+          <Text style={[styles.email, { color: colors.textSecondary }, textStyles.subtitle]}>
             Premium Member
           </Text>
         </View>
 
         <View style={[styles.statsContainer, { backgroundColor: colors.surface }]}>
           <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: colors.primary }]}>
+            <Text style={[styles.statValue, { color: colors.primary }, textStyles.title]}>
               {stats.totalQuestions}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }, textStyles.caption]}>
               Questions Asked
             </Text>
           </View>
           
           <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: colors.success }]}>
+            <Text style={[styles.statValue, { color: colors.success }, textStyles.title]}>
               {stats.avgConfidence}%
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }, textStyles.caption]}>
               Avg Confidence
             </Text>
           </View>
           
           <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: colors.warning }]}>
+            <Text style={[styles.statValue, { color: colors.warning }, textStyles.title]}>
               {stats.favoritesCount}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }, textStyles.caption]}>
               Favorites
             </Text>
           </View>
@@ -123,14 +125,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
               ) : (
                 <Sun size={24} color={colors.text} />
               )}
-              <Text style={[styles.themeToggleText, { color: colors.text }]}>
+              <Text style={[styles.themeToggleText, { color: colors.text }, textStyles.body]}>
                 {isDark ? "Dark Mode" : "Light Mode"}
               </Text>
             </View>
             
             <Switch
               value={isDark}
-              onValueChange={toggleTheme}
+              onValueChange={(value) => setTheme(value ? 'dark' : 'light')}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor={colors.white}
             />
@@ -148,10 +150,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
                 </View>
                 
                 <View style={styles.menuText}>
-                  <Text style={[styles.menuTitle, { color: colors.text }]}>
+                  <Text style={[styles.menuTitle, { color: colors.text }, textStyles.body]}>
                     {item.title}
                   </Text>
-                  <Text style={[styles.menuSubtitle, { color: colors.textSecondary }]}>
+                  <Text style={[styles.menuSubtitle, { color: colors.textSecondary }, textStyles.caption]}>
                     {item.subtitle}
                   </Text>
                 </View>
@@ -166,7 +168,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             onPress={handleLogout}
           >
             <LogOut size={20} color={colors.error} />
-            <Text style={[styles.logoutText, { color: colors.error }]}>
+            <Text style={[styles.logoutText, { color: colors.error }, textStyles.button]}>
               Sign Out
             </Text>
           </TouchableOpacity>

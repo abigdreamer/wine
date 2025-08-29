@@ -12,10 +12,12 @@ import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Question } from "../types/question";
 import { MainRoutes, SessionsScreenProps } from "../types/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function SessionsScreen({ navigation }: SessionsScreenProps) {
     const { colors } = useTheme();
     const { questions } = useQuestions();
+    const { t } = useTranslation();
 
     const activeSessions = questions.filter(q => q.status === "active");
 
@@ -27,7 +29,7 @@ export default function SessionsScreen({ navigation }: SessionsScreenProps) {
             <View style={styles.sessionHeader}>
                 <View style={[styles.statusBadge, { backgroundColor: colors.success + "20" }]}>
                     <Text style={[styles.statusText, { color: colors.success }]}>
-                        Active
+                        {t('common.active')}
                     </Text>
                 </View>
                 <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
@@ -43,14 +45,14 @@ export default function SessionsScreen({ navigation }: SessionsScreenProps) {
                 <View style={styles.sessionStats}>
                     <Clock size={16} color={colors.textSecondary} />
                     <Text style={[styles.statText, { color: colors.textSecondary }]}>
-                        {Math.floor((Date.now() - item.createdAt) / 60000)}m ago
+                        {t('common.minutesAgo', { minutes: Math.floor((Date.now() - item.createdAt) / 60000) })}
                     </Text>
                 </View>
 
                 <View style={styles.sessionStats}>
                     <TrendingUp size={16} color={colors.primary} />
                     <Text style={[styles.statText, { color: colors.primary }]}>
-                        {item.confidence}% confidence
+                        {t('common.confidence', { percent: item.confidence })}
                     </Text>
                 </View>
             </View>
@@ -61,10 +63,10 @@ export default function SessionsScreen({ navigation }: SessionsScreenProps) {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>
-                    Live Sessions
+                    {t('sessions.title')}
                 </Text>
                 <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                    {activeSessions.length} active conversations
+                    {t('sessions.subtitle', { count: activeSessions.length })}
                 </Text>
             </View>
 
@@ -72,10 +74,10 @@ export default function SessionsScreen({ navigation }: SessionsScreenProps) {
                 <View style={styles.emptyState}>
                     <MessageCircle size={64} color={colors.textSecondary} />
                     <Text style={[styles.emptyTitle, { color: colors.text }]}>
-                        No Active Sessions
+                        {t('sessions.empty.title')}
                     </Text>
                     <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-                        Start a new conversation from the home screen
+                        {t('sessions.empty.subtitle')}
                     </Text>
 
                     <TouchableOpacity
@@ -83,7 +85,7 @@ export default function SessionsScreen({ navigation }: SessionsScreenProps) {
                         // onPress={() => router.push("/(tabs)/home")}
                     >
                         <Text style={[styles.startButtonText, { color: colors.white }]}>
-                            Ask a Question
+                            {t('sessions.empty.action')}
                         </Text>
                     </TouchableOpacity>
                 </View>

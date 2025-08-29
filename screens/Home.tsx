@@ -11,8 +11,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Mic, Send, Zap, MessageCircle, Clock } from "lucide-react-native";
 import { useTheme } from "../theme/theme-context";
+import { useFont } from "../theme/font-context";
 import { useQuestions } from "../store/question-store";
 import { HomeScreenProps, MainRoutes } from "../types/navigation";
+import { useTranslation } from "react-i18next";
+import { useHomeStyles } from "./Home.styles";
 
 const { width } = Dimensions.get("window");
 
@@ -20,6 +23,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     const [question, setQuestion] = useState<string>("");
     const { colors } = useTheme();
     const { addQuestion } = useQuestions();
+    const { t } = useTranslation();
+    const { textStyles } = useFont();
+    const styles = useHomeStyles();
 
     const handleAskQuestion = () => {
         if (!question.trim()) return;
@@ -31,25 +37,25 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
     const quickActions = [
         {
-            title: "Ask AI",
-            subtitle: "Get instant answers",
+            title: t('home.actions.askAi.title'),
+            subtitle: t('home.actions.askAi.subtitle'),
             icon: Zap,
             color: colors.primary,
             onPress: () => { },
         },
         {
-            title: "Live Session",
-            subtitle: "Real-time chat",
+            title: t('home.actions.liveSession.title'),
+            subtitle: t('home.actions.liveSession.subtitle'),
             icon: MessageCircle,
             color: colors.success,
-              onPress: () => navigation.push(MainRoutes.Sessions),
+            onPress: () => navigation.push(MainRoutes.Sessions),
         },
         {
-            title: "Browse History",
-            subtitle: "Past conversations",
+            title: t('home.actions.history.title'),
+            subtitle: t('home.actions.history.subtitle'),
             icon: Clock,
             color: colors.warning,
-              onPress: () => navigation.push(MainRoutes.History),
+            onPress: () => navigation.push(MainRoutes.History),
         },
     ];
 
@@ -58,17 +64,17 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
                     <Text style={[styles.greeting, { color: colors.text }]}>
-                        Hello! 👋
+                        {t('home.greeting')}
                     </Text>
                     <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                        What would you like to know today?
+                        {t('home.subtitle')}
                     </Text>
                 </View>
 
                 <View style={[styles.inputCard, { backgroundColor: colors.surface }]}>
                     <TextInput
                         style={[styles.input, { color: colors.text }]}
-                        placeholder="Ask me anything..."
+                        placeholder={t('home.inputPlaceholder')}
                         placeholderTextColor={colors.textSecondary}
                         value={question}
                         onChangeText={setQuestion}
@@ -96,7 +102,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
                 <View style={styles.quickActions}>
                     <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                        Quick Actions
+                        {t('home.quickActions')}
                     </Text>
 
                     {quickActions.map((action, index) => (
@@ -125,101 +131,4 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    header: {
-        paddingHorizontal: 24,
-        paddingTop: 24,
-        paddingBottom: 32,
-    },
-    greeting: {
-        fontSize: 28,
-        fontWeight: "bold",
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        lineHeight: 22,
-    },
-    inputCard: {
-        marginHorizontal: 24,
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 32,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    input: {
-        fontSize: 16,
-        lineHeight: 22,
-        minHeight: 80,
-        textAlignVertical: "top",
-        marginBottom: 16,
-    },
-    inputActions: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    micButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    sendButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    quickActions: {
-        paddingHorizontal: 24,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: "600",
-        marginBottom: 16,
-    },
-    actionCard: {
-        flexDirection: "row",
-        alignItems: "center",
-        padding: 20,
-        borderRadius: 16,
-        marginBottom: 12,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    actionIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 16,
-    },
-    actionContent: {
-        flex: 1,
-    },
-    actionTitle: {
-        fontSize: 16,
-        fontWeight: "600",
-        marginBottom: 4,
-    },
-    actionSubtitle: {
-        fontSize: 14,
-    },
-});
+// Styles are now imported from Home.styles.ts
