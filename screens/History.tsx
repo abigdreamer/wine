@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Search, Clock, Star, Filter } from "lucide-react-native";
@@ -13,16 +14,62 @@ import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Question } from "../types/question";
 import { HistoryScreenProps, MainRoutes } from "../types/navigation";
+import { useAuth } from "../store/auth-store";
 
 export default function HistoryScreen({ navigation }: HistoryScreenProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [remoteHistory, setRemoteHistory] = useState<Question[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const { colors } = useTheme();
   const { questions, toggleFavorite } = useQuestions();
+  const { user, getUserHistory } = useAuth();
 
-  const completedQuestions = questions.filter(q => q.status === "completed");
+  // ✅ Fetch remote history
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (!user) return;
+      try {
+        setLoading(true);
+        const data = await getUserHistory(user.id); // already an array now
 
-  const filteredQuestions = completedQuestions.filter(q =>
+        const mapped: Question[] = data.map((item: any) => ({
+          id: item.id,
+          text: item.text,
+          answer: item.answer,
+          confidence: item.confidence,
+          domain: item.domain,
+          createdAt: item.createdAt,
+          isFavorite: item.isFavorite ?? false,
+          status: "completed",
+          sources: item.sources ?? [],
+        }));
+
+        setRemoteHistory(mapped);
+      } catch (error) {
+        console.error("Failed to load remote history:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [user]);
+
+  // ✅ Local completed questions
+  const completedLocal = questions.filter((q) => q.status === "completed");
+
+  // ✅ Merge remote + local (avoid duplicates by id)
+  const mergedHistory = [
+    ...completedLocal,
+    ...remoteHistory.filter(
+      (remote) => !completedLocal.some((local) => local.id === remote.id)
+    ),
+  ];
+
+  // ✅ Apply search filter
+  const filteredQuestions = mergedHistory.filter((q) =>
     q.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -35,7 +82,7 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
         <Text style={[styles.timestamp, { color: colors.textSecondary }]}>
           {new Date(item.createdAt).toLocaleDateString()}
         </Text>
-        
+
         <TouchableOpacity onPress={() => toggleFavorite(item.id)}>
           <Star
             size={20}
@@ -44,39 +91,64 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
           />
         </TouchableOpacity>
       </View>
-      
-      <Text style={[styles.questionText, { color: colors.text }]} numberOfLines={3}>
+
+      <Text
+        style={[styles.questionText, { color: colors.text }]}
+        numberOfLines={3}
+      >
         {item.text}
       </Text>
-      
+
       {item.answer && (
-        <Text style={[styles.answerPreview, { color: colors.textSecondary }]} numberOfLines={2}>
+        <Text
+          style={[styles.answerPreview, { color: colors.textSecondary }]}
+          numberOfLines={2}
+        >
           {item.answer}
         </Text>
       )}
-      
+
       <View style={styles.questionFooter}>
-        <View style={[styles.confidenceBadge, { backgroundColor: colors.primary + "20" }]}>
-          <Text style={[styles.confidenceText, { color: colors.primary }]}>
-            {item.confidence}% confidence
+        {item.confidence !== undefined && (
+          <View
+            style={[
+              styles.confidenceBadge,
+              { backgroundColor: colors.primary + "20" },
+            ]}
+          >
+            <Text style={[styles.confidenceText, { color: colors.primary }]}>
+              {item.confidence}% confidence
+            </Text>
+          </View>
+        )}
+
+        {item.domain && (
+          <Text style={[styles.domain, { color: colors.textSecondary }]}>
+            {item.domain}
           </Text>
-        </View>
-        
-        <Text style={[styles.domain, { color: colors.textSecondary }]}>
-          {item.domain}
-        </Text>
+        )}
       </View>
     </TouchableOpacity>
   );
 
+  if (loading && mergedHistory.length === 0) {
+    return (
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          History
-        </Text>
+        <Text style={[styles.title, { color: colors.text }]}>History</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {completedQuestions.length} past conversations
+          {mergedHistory.length} past conversations
         </Text>
       </View>
 
@@ -91,7 +163,7 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
             onChangeText={setSearchQuery}
           />
         </View>
-        
+
         <TouchableOpacity
           style={[styles.filterButton, { backgroundColor: colors.surface }]}
           onPress={() => setShowFilters(!showFilters)}
@@ -107,10 +179,9 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
             {searchQuery ? "No Results Found" : "No History Yet"}
           </Text>
           <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-            {searchQuery 
+            {searchQuery
               ? "Try adjusting your search terms"
-              : "Your completed conversations will appear here"
-            }
+              : "Your completed conversations will appear here"}
           </Text>
         </View>
       ) : (

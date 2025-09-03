@@ -8,46 +8,47 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Select, SelectItem, IndexPath } from '@ui-kitten/components';
-import { ChevronLeft } from 'lucide-react-native';
-import { useTheme } from "../theme/theme-context";
+import { Select, SelectItem, IndexPath, useTheme } from "@ui-kitten/components";
+import { ChevronLeft } from "lucide-react-native";
 import { useFont } from "../theme/font-context";
 import type { FontType } from "../theme/font-context";
 import { MainRoutes, PreferencesScreenProps } from "../types/navigation";
 import { saveConfig, getConfig } from "../store/config-storage";
-import { useTranslation } from 'react-i18next';
-import '../i18n/config';
+import { useTranslation } from "react-i18next";
+import "../i18n/config";
 
 // Force immediate initialization of i18n
-import i18n from '../i18n/config';
+import i18n from "../i18n/config";
 
 const personalities = ["Friendly", "Professional", "Humorous", "Casual"];
 const languages = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'zh', name: '中文' }
+  { code: "en", name: "English" },
+  { code: "es", name: "Español" },
+  { code: "fr", name: "Français" },
+  { code: "de", name: "Deutsch" },
+  { code: "zh", name: "中文" },
 ];
 
 const themes = [
-  { code: 'light', name: 'Light' },
-  { code: 'dark', name: 'Dark' }
+  { code: "light", name: "Light" },
+  { code: "dark", name: "Dark" },
 ];
 
 const fonts = [
-  { code: 'helvetica', name: 'Helvetica' },
-  { code: 'roboto', name: 'Roboto' },
-  { code: 'openSans', name: 'Open Sans' },
-  { code: 'patrickHand', name: 'Patrick Hand' }
+  { code: "helvetica", name: "Helvetica" },
+  { code: "roboto", name: "Roboto" },
+  { code: "openSans", name: "Open Sans" },
+  { code: "patrickHand", name: "Patrick Hand" },
 ];
 
 export default function Preferences({ navigation }: PreferencesScreenProps) {
-  const [selectedPersonality, setSelectedPersonality] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('');
-  const [selectedTheme, setSelectedTheme] = useState<string>('');
-  const [selectedFont, setSelectedFont] = useState<string>('');
-  const { colors, setTheme } = useTheme();
+  const [selectedPersonality, setSelectedPersonality] = useState<string | null>(
+    null
+  );
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("");
+  const [selectedTheme, setSelectedTheme] = useState<string>("");
+  const [selectedFont, setSelectedFont] = useState<string>("");
+  const colors = useTheme(); // ✅ UI Kitten theme
   const { textStyles, setFont } = useFont();
   const { t, i18n } = useTranslation();
 
@@ -63,10 +64,10 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
           if (config.font) setSelectedFont(config.font);
         }
       } catch (error) {
-        console.error('Error loading preferences:', error);
+        console.error("Error loading preferences:", error);
       }
     };
-    
+
     loadInitialPreferences();
   }, []);
 
@@ -81,17 +82,21 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
 
   const handleFontChange = (fontCode: string) => {
     setSelectedFont(fontCode);
-    setFont(fontCode as FontType);
   };
 
   const handleContinue = async () => {
-    if (!selectedPersonality || !selectedLanguage || !selectedTheme || !selectedFont) {
-      Alert.alert(t('error'), t('preferences.selectBoth'));
+    if (
+      !selectedPersonality ||
+      !selectedLanguage ||
+      !selectedTheme ||
+      !selectedFont
+    ) {
+      Alert.alert(t("error"), t("preferences.selectBoth"));
       return;
     }
 
     try {
-      // First apply language change to ensure proper translation of any error messages
+      // First apply language change
       if (selectedLanguage !== i18n.language) {
         await i18n.changeLanguage(selectedLanguage);
       }
@@ -104,47 +109,64 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
         font: selectedFont,
       });
 
-      // Apply theme change
-      setTheme(selectedTheme as 'light' | 'dark');
+      // Apply font change
+      setFont(selectedFont as FontType);
 
-      // Log confirmation of changes
-      console.log('Preferences applied:', {
+      console.log("Preferences applied:", {
         language: selectedLanguage,
         theme: selectedTheme,
         font: selectedFont,
-        personality: selectedPersonality
+        personality: selectedPersonality,
       });
 
-      // Navigate to main app navigation
       navigation.navigate(MainRoutes.BottomTab);
     } catch (error) {
-      console.error('Error saving preferences:', error);
-      Alert.alert(t('error'), t('preferences.saveError'));
+      console.error("Error saving preferences:", error);
+      Alert.alert(t("error"), t("preferences.saveError"));
     }
   };
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: colors["color-basic-000"] }]}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
-        <ChevronLeft size={24} color={colors.text} />
+        <ChevronLeft size={24} color={colors["color-basic-900"]} />
       </TouchableOpacity>
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={[styles.title, { color: colors.text }, textStyles.title]}>
-          {t('preferences.title')}
+        <Text
+          style={[
+            styles.title,
+            { color: colors["color-basic-900"] },
+            textStyles.title,
+          ]}
+        >
+          {t("preferences.title")}
         </Text>
 
-        <Text style={[styles.subtitle, { color: colors.textSecondary }, textStyles.subtitle]}>
-          {t('preferences.subtitle')}
+        <Text
+          style={[
+            styles.subtitle,
+            { color: colors["color-basic-600"] },
+            textStyles.subtitle,
+          ]}
+        >
+          {t("preferences.subtitle")}
         </Text>
 
         {/* Personality Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }, textStyles.button]}>
-          {t('preferences.selectPersonality')}
+        <Text
+          style={[
+            styles.sectionTitle,
+            { color: colors["color-basic-900"] },
+            textStyles.button,
+          ]}
+        >
+          {t("preferences.selectPersonality")}
         </Text>
         <View style={styles.optionsContainer}>
           {personalities.map((p) => (
@@ -152,10 +174,10 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
               key={p}
               style={[
                 styles.optionButton,
-                { borderColor: colors.border },
+                { borderColor: colors["color-basic-400"] },
                 selectedPersonality === p && {
-                  backgroundColor: colors.primary,
-                  borderColor: colors.primary,
+                  backgroundColor: colors["color-primary-500"],
+                  borderColor: colors["color-primary-500"],
                 },
               ]}
               onPress={() => setSelectedPersonality(p)}
@@ -163,8 +185,10 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
               <Text
                 style={[
                   styles.optionText,
-                  { color: colors.text },
-                  selectedPersonality === p && { color: colors.white },
+                  { color: colors["color-basic-900"] },
+                  selectedPersonality === p && {
+                    color: colors["color-basic-100"],
+                  },
                 ]}
               >
                 {p}
@@ -174,46 +198,70 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
         </View>
 
         {/* Language Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t('preferences.selectLanguage')}
+        <Text
+          style={[styles.sectionTitle, { color: colors["color-basic-900"] }]}
+        >
+          {t("preferences.selectLanguage")}
         </Text>
         <Select
           style={styles.select}
-          placeholder={t('preferences.selectLanguagePrompt')}
-          value={selectedLanguage ? languages.find(lang => lang.code === selectedLanguage)?.name : ''}
-          onSelect={index => handleLanguageChange(languages[(index as IndexPath).row].code)}
+          placeholder={t("preferences.selectLanguagePrompt")}
+          value={
+            selectedLanguage
+              ? languages.find((lang) => lang.code === selectedLanguage)?.name
+              : ""
+          }
+          onSelect={(index) =>
+            handleLanguageChange(languages[(index as IndexPath).row].code)
+          }
         >
-          {languages.map(lang => (
+          {languages.map((lang) => (
             <SelectItem key={lang.code} title={lang.name} />
           ))}
         </Select>
 
         {/* Theme Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t('preferences.selectTheme')}
+        <Text
+          style={[styles.sectionTitle, { color: colors["color-basic-900"] }]}
+        >
+          {t("preferences.selectTheme")}
         </Text>
         <Select
           style={styles.select}
-          placeholder={t('preferences.selectThemePrompt')}
-          value={selectedTheme ? themes.find(theme => theme.code === selectedTheme)?.name : ''}
-          onSelect={index => handleThemeChange(themes[(index as IndexPath).row].code)}
+          placeholder={t("preferences.selectThemePrompt")}
+          value={
+            selectedTheme
+              ? themes.find((theme) => theme.code === selectedTheme)?.name
+              : ""
+          }
+          onSelect={(index) =>
+            handleThemeChange(themes[(index as IndexPath).row].code)
+          }
         >
-          {themes.map(theme => (
+          {themes.map((theme) => (
             <SelectItem key={theme.code} title={theme.name} />
           ))}
         </Select>
 
         {/* Font Section */}
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>
-          {t('preferences.selectFont')}
+        <Text
+          style={[styles.sectionTitle, { color: colors["color-basic-900"] }]}
+        >
+          {t("preferences.selectFont")}
         </Text>
         <Select
           style={styles.select}
-          placeholder={t('preferences.selectFontPrompt')}
-          value={selectedFont ? fonts.find(font => font.code === selectedFont)?.name : ''}
-          onSelect={index => handleFontChange(fonts[(index as IndexPath).row].code)}
+          placeholder={t("preferences.selectFontPrompt")}
+          value={
+            selectedFont
+              ? fonts.find((font) => font.code === selectedFont)?.name
+              : ""
+          }
+          onSelect={(index) =>
+            handleFontChange(fonts[(index as IndexPath).row].code)
+          }
         >
-          {fonts.map(font => (
+          {fonts.map((font) => (
             <SelectItem key={font.code} title={font.name} />
           ))}
         </Select>
@@ -221,14 +269,20 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
         <TouchableOpacity
           style={[
             styles.continueButton,
-            { backgroundColor: colors.primary },
-            !(selectedPersonality && selectedLanguage && selectedLanguage !== '') && { opacity: 0.5 },
+            { backgroundColor: colors["color-primary-500"] },
+            !(
+              selectedPersonality &&
+              selectedLanguage &&
+              selectedLanguage !== ""
+            ) && { opacity: 0.5 },
           ]}
           disabled={!selectedPersonality || !selectedLanguage}
           onPress={handleContinue}
         >
-          <Text style={[styles.continueText, { color: colors.white }]}>
-            {t('common.continue')}
+          <Text
+            style={[styles.continueText, { color: colors["color-basic-100"] }]}
+          >
+            {t("common.continue")}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -237,11 +291,9 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     left: 20,
     zIndex: 1,
@@ -259,11 +311,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 32,
-  },
+  subtitle: { fontSize: 16, textAlign: "center", marginBottom: 32 },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -283,12 +331,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     margin: 6,
   },
-  optionText: {
-    fontSize: 16,
-  },
-  select: {
-    marginBottom: 24,
-  },
+  optionText: { fontSize: 16 },
+  select: { marginBottom: 24 },
   continueButton: {
     height: 56,
     borderRadius: 12,
@@ -297,8 +341,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 24,
   },
-  continueText: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  continueText: { fontSize: 16, fontWeight: "600" },
 });
