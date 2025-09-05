@@ -1,8 +1,40 @@
-const OPENROUTER_KEY =
-  "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";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { UserConfig } from "../../store/config-storage";
 
-export async function getAIResponse(userMessage: string): Promise<string> {
+const OPENROUTER_KEY =
+  "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";
+
+async function getUserConfig(): Promise<UserConfig> {
   try {
+    const raw = await AsyncStorage.getItem("user_config");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function getAIResponse(
+  messages: { role: string; content: string }[]
+): Promise<string> {
+  try {
+    const config = await getUserConfig();
+
+    const systemPrompt = `
+  You are a ${
+    config.personality || "friendly sommelier"
+  } AI concierge for Domaine Carneros winery.
+  Always respond in ${config.language || "English"}.
+  User's name (if provided): ${config.name || "Guest"}.
+  Website: ${config.website || "http://domainecarneros.com/"}.
+  Theme preference: ${config.theme || "default"}.
+  Font preference: ${config.font || "system"}.
+  
+  Important Notes:
+  - Stay strictly on topics related to Domaine Carneros (wines, pairings, tasting notes, winery info, or the website).
+  - If the user asks about anything unrelated, politely redirect back to Domaine Carneros.
+  - Keep tone approachable, aligned with the user's personality preference.
+  `;
+
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -13,17 +45,7 @@ export async function getAIResponse(userMessage: string): Promise<string> {
         },
         body: JSON.stringify({
           model: "deepseek/deepseek-chat-v3.1:free",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a friendly sommelier AI. Always talk about wines, food pairings, and tasting notes in an approachable tone.",
-            },
-            {
-              role: "user",
-              content: userMessage,
-            },
-          ],
+          messages: [{ role: "system", content: systemPrompt }, ...messages],
         }),
       }
     );

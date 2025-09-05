@@ -1,11 +1,14 @@
+import { Message } from "./message";
+
 export interface Question {
   id: string;
   text: string;
   answer?: string;
-  status: "active" | "completed" | "failed";
-  createdAt: number;
-  confidence: number;
+  confidence?: number;
   domain: string;
+  createdAt: number;
   isFavorite: boolean;
+  status: "active" | "completed";
   sources: string[];
+  messages?: Message[];
 }

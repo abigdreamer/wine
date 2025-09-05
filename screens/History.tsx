@@ -15,6 +15,7 @@ import { useQuestions } from "../store/question-store";
 import { Question } from "../types/question";
 import { HistoryScreenProps, MainRoutes } from "../types/navigation";
 import { useAuth } from "../store/auth-store";
+import Markdown from "react-native-markdown-display";
 
 export default function HistoryScreen({ navigation }: HistoryScreenProps) {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -25,6 +26,11 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
   const { colors } = useTheme();
   const { questions, toggleFavorite } = useQuestions();
   const { user, getUserHistory } = useAuth();
+
+  const truncateText = (text: string, maxLength = 150) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + "…";
+  };
 
   // ✅ Fetch remote history
   useEffect(() => {
@@ -99,13 +105,30 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
         {item.text}
       </Text>
 
-      {item.answer && (
-        <Text
-          style={[styles.answerPreview, { color: colors.textSecondary }]}
-          numberOfLines={2}
+      {item.messages && item.messages.length > 0 ? (
+        <Markdown
+          style={{
+            body: { color: colors.textSecondary, fontSize: 14, lineHeight: 20 },
+            strong: { fontWeight: "700" },
+          }}
         >
-          {item.answer}
-        </Text>
+          {truncateText(item.messages[item.messages.length - 1].text)}
+        </Markdown>
+      ) : (
+        item.answer && (
+          <Markdown
+            style={{
+              body: {
+                color: colors.textSecondary,
+                fontSize: 14,
+                lineHeight: 20,
+              },
+              strong: { fontWeight: "700" },
+            }}
+          >
+            {truncateText(item.answer)}
+          </Markdown>
+        )
       )}
 
       <View style={styles.questionFooter}>

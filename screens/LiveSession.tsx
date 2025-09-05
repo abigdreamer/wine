@@ -17,6 +17,7 @@ import { useQuestions } from "../store/question-store";
 import { Message } from "../types/message";
 import { LiveSessionScreenProps } from "../types/navigation";
 import { getAIResponse } from "../src/services/ai";
+import Markdown from "react-native-markdown-display";
 
 export default function LiveSessionScreen({
   navigation,
@@ -98,7 +99,13 @@ export default function LiveSessionScreen({
     setIsTyping(true);
 
     try {
-      const aiText = await getAIResponse(newMessage);
+      const aiText = await getAIResponse([
+        ...messages.map((m) => ({
+          role: m.isUser ? "user" : "assistant",
+          content: m.text,
+        })),
+        { role: "user", content: newMessage },
+      ]);
 
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -119,6 +126,7 @@ export default function LiveSessionScreen({
           confidence: aiResponse.confidence || 85,
           sources: aiResponse.sources,
           status: "completed",
+          messages: [...messages, userMessage, aiResponse],
         });
       }
     } catch (err) {
@@ -151,14 +159,23 @@ export default function LiveSessionScreen({
           },
         ]}
       >
-        <Text
-          style={[
-            styles.messageText,
-            { color: item.isUser ? colors.white : colors.text },
-          ]}
-        >
-          {item.text}
-        </Text>
+        {item.isUser ? (
+          <Text style={[styles.messageText, { color: colors.white }]}>
+            {item.text}
+          </Text>
+        ) : (
+          <Markdown
+            style={{
+              body: { color: colors.text, fontSize: 16, lineHeight: 22 },
+              strong: { fontWeight: "700" },
+              bullet_list: { marginVertical: 4 },
+              list_item: { flexDirection: "row", marginBottom: 4 },
+              link: { color: colors.primary, textDecorationLine: "underline" },
+            }}
+          >
+            {item.text}
+          </Markdown>
+        )}
 
         {!item.isUser && item.confidence && (
           <View style={styles.messageFooter}>
