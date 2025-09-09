@@ -2,8 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserConfig } from "../../store/config-storage";
 
 const OPENROUTER_KEY =
-  "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";
-
+  "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";
 async function getUserConfig(): Promise<UserConfig> {
   try {
     const raw = await AsyncStorage.getItem("user_config");
@@ -13,10 +12,16 @@ async function getUserConfig(): Promise<UserConfig> {
   }
 }
 
+export interface AIResponse {
+  text: string;
+  images?: string[];
+}
+
 export async function getAIResponse(
   messages: { role: string; content: string }[]
-): Promise<string> {
+): Promise<AIResponse> {
   try {
+    console.log('AI Service received messages:', messages);
     const config = await getUserConfig();
 
     const systemPrompt = `
@@ -30,9 +35,35 @@ export async function getAIResponse(
   Font preference: ${config.font || "system"}.
   
   Important Notes:
-  - Stay strictly on topics related to Domaine Carneros (wines, pairings, tasting notes, winery info, or the website).
-  - If the user asks about anything unrelated, politely redirect back to Domaine Carneros.
-  - Keep tone approachable, aligned with the user's personality preference.
+  - Focus on providing accurate information about Domaine Carneros tours and tastings:
+    * Available tour types and tasting experiences
+    * Current pricing and booking requirements
+    * What's included in each tasting package
+    * Tour timelines and durations
+    * Special experiences (e.g., food pairings, private tastings)
+    * Venue spaces and accommodations
+    * Seasonal events and special occasions
+  - Provide specific details about:
+    * Tour schedules and availability
+    * Booking process and requirements
+    * Group size limitations
+    * Cancellation policies
+    * Special accommodations or accessibility
+    * Food and wine pairing options
+  - Include relevant images (using markdown format: ![description](image_url)) for:
+    * Tasting rooms and spaces
+    * Tour locations and views
+    * Wine flight presentations
+    * Food pairing examples
+    * Special events and experiences
+  - Keep tone professional yet approachable, aligned with personality preference
+  - If user asks about unrelated topics, redirect to Domaine Carneros offerings
+  - When sharing tour/tasting info, always mention:
+    * Advance booking requirements
+    * Duration of experience
+    * What's included
+    * Current pricing
+    * Any seasonal variations
   `;
 
     const response = await fetch(
@@ -54,12 +85,29 @@ export async function getAIResponse(
 
     if (!data.choices || !data.choices[0]) {
       console.error("Invalid OpenRouter response:", data);
-      return "Sorry, I didn’t understand that.";
+      return {
+        text: "Sorry, I didn't understand that."
+      };
     }
 
-    return data.choices[0].message.content.trim();
+    const content = data.choices[0].message.content.trim();
+    
+    // Parse the response for any image URLs
+    // Looking for markdown format images: ![description](url)
+    const imageRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/g;
+    const images = [...content.matchAll(imageRegex)].map(match => match[1]);
+    
+    // Remove the image markdown from the text
+    const textContent = content.replace(imageRegex, '').trim();
+
+    return {
+      text: textContent,
+      ...(images.length > 0 && { images })
+    };
   } catch (err) {
     console.error("OpenRouter API error:", err);
-    return "Sorry, I couldn’t connect to the AI service.";
+    return {
+      text: "Sorry, I couldn't connect to the AI service."
+    };
   }
 }

@@ -37,6 +37,7 @@ export const [QuestionsProvider, useQuestions] = createContextHook<QuestionsStat
   };
 
   const addQuestion = (text: string): Question => {
+    console.log('QuestionStore: Adding new question:', text);
     const newQuestion: Question = {
       id: Date.now().toString(),
       text,
@@ -48,6 +49,7 @@ export const [QuestionsProvider, useQuestions] = createContextHook<QuestionsStat
       sources: [],
     };
 
+    console.log('QuestionStore: Created question object:', newQuestion);
     const updatedQuestions = [newQuestion, ...questions];
     setQuestions(updatedQuestions);
     saveQuestions(updatedQuestions);

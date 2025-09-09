@@ -13,11 +13,17 @@ import { Search, Clock, Star, Filter } from "lucide-react-native";
 import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Question } from "../types/question";
-import { HistoryScreenProps, MainRoutes } from "../types/navigation";
+import { MainRoutes } from "../types/navigation";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../types/navigation";
 import { useAuth } from "../store/auth-store";
 import Markdown from "react-native-markdown-display";
 
-export default function HistoryScreen({ navigation }: HistoryScreenProps) {
+export default function HistoryScreen({ 
+  navigation 
+}: { 
+  navigation: NativeStackNavigationProp<RootStackParamList> 
+}) {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [remoteHistory, setRemoteHistory] = useState<Question[]>([]);
@@ -27,18 +33,29 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
   const { questions, toggleFavorite } = useQuestions();
   const { user, getUserHistory } = useAuth();
 
-  const truncateText = (text: string, maxLength = 150) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + "…";
+  const truncateText = (text: any, maxLength = 150) => {
+    // Convert to string and handle all possible types
+    const str = String(text || '');
+    if (str.length <= maxLength) return str;
+    return str.substring(0, maxLength) + "…";
   };
 
   // ✅ Fetch remote history
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!user) return;
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+      
       try {
         setLoading(true);
-        const data = await getUserHistory(user.id); // already an array now
+        const data = await getUserHistory(user.id);
+        
+        if (!data || !Array.isArray(data)) {
+          console.error('Invalid history data received');
+          return;
+        }
 
         const mapped: Question[] = data.map((item: any) => ({
           id: item.id,
@@ -82,7 +99,12 @@ export default function HistoryScreen({ navigation }: HistoryScreenProps) {
   const renderQuestion = ({ item }: { item: Question }) => (
     <TouchableOpacity
       style={[styles.questionCard, { backgroundColor: colors.surface }]}
-      onPress={() => navigation.push(MainRoutes.LiveSession, { id: item.id })}
+      onPress={() => {
+        if (item.id) {
+          // Use navigation.push for nested navigation
+          navigation.push(MainRoutes.LiveSession, { id: item.id });
+        }
+      }}
     >
       <View style={styles.questionHeader}>
         <Text style={[styles.timestamp, { color: colors.textSecondary }]}>

@@ -34,7 +34,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const stats = {
     totalQuestions: questions.length,
     avgConfidence: Math.round(
-      questions.reduce((sum, q) => sum + q.confidence, 0) / questions.length || 0
+      questions.reduce((sum, q) => sum + (q.confidence ?? 0), 0) / questions.length || 0
     ),
     favoritesCount: questions.filter(q => q.isFavorite).length,
   };

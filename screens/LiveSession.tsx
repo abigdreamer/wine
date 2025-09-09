@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Animated,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Send, ArrowLeft, MoreVertical } from "lucide-react-native";
@@ -35,33 +36,87 @@ export default function LiveSessionScreen({
   const question = questions.find((q) => q.id === id);
 
   useEffect(() => {
-    if (question) {
-      const initialMessages: Message[] = [];
-
-      if (question.text) {
-        initialMessages.push({
-          id: "1",
-          text: question.text,
-          isUser: true,
-          timestamp: question.createdAt,
-        });
+    const initializeSession = async () => {
+      if (!question) {
+        console.log('No question found');
+        return;
       }
 
-      if (question.answer) {
-        initialMessages.push({
-          id: "2",
-          text: question.answer,
+      // If we already have an answer, just display the existing conversation
+      if (question.text && question.answer) {
+        setMessages([
+          {
+            id: "1",
+            text: question.text,
+            isUser: true,
+            timestamp: question.createdAt,
+          },
+          {
+            id: "2",
+            text: question.answer,
+            isUser: false,
+            timestamp: question.createdAt + 1000,
+            confidence: question.confidence,
+            sources: question.sources,
+          }
+        ]);
+        return;
+      }
+
+      // For new questions, create user message and get AI response
+      const userMessage: Message = {
+        id: Date.now().toString(),
+        text: question.text,
+        isUser: true,
+        timestamp: Date.now(),
+      };
+      
+      setMessages([userMessage]);
+      setIsTyping(true);
+
+      try {
+        // Get AI response
+        const aiResponse = await getAIResponse([
+          { role: "user", content: question.text }
+        ]);
+
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          text: aiResponse.text,
           isUser: false,
-          timestamp: question.createdAt + 1000,
-          confidence: question.confidence,
-          sources: question.sources,
-        });
-      }
+          timestamp: Date.now(),
+          confidence: Math.floor(Math.random() * 20) + 80,
+          sources: ["DeepSeek AI"],
+          images: aiResponse.images,
+        };
 
-      setMessages(initialMessages);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+        setMessages([userMessage, aiMessage]);
+        
+        // Update question in store
+        updateQuestion(question.id, {
+          answer: aiMessage.text,
+          confidence: aiMessage.confidence,
+          sources: aiMessage.sources,
+          status: "completed",
+        });
+      } catch (error) {
+        console.error('AI Response Error:', error);
+        setMessages([
+          userMessage,
+          {
+            id: Date.now().toString(),
+            text: "Sorry, I couldn't connect to the AI service.",
+            isUser: false,
+            timestamp: Date.now(),
+          }
+        ]);
+      } finally {
+        setIsTyping(false);
+      }
+    };
+
+    initializeSession();
+  }, [question, updateQuestion]);
 
   useEffect(() => {
     if (isTyping) {
@@ -99,7 +154,7 @@ export default function LiveSessionScreen({
     setIsTyping(true);
 
     try {
-      const aiText = await getAIResponse([
+      const aiResponse = await getAIResponse([
         ...messages.map((m) => ({
           role: m.isUser ? "user" : "assistant",
           content: m.text,
@@ -107,26 +162,27 @@ export default function LiveSessionScreen({
         { role: "user", content: newMessage },
       ]);
 
-      const aiResponse: Message = {
+      const messageResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: aiText,
+        text: aiResponse.text,
         isUser: false,
         timestamp: Date.now(),
         confidence: Math.floor(Math.random() * 20) + 80,
         sources: ["DeepSeek AI"], // for now, just placeholder
+        images: aiResponse.images,
       };
 
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, messageResponse]);
       setIsTyping(false);
 
       if (question) {
         updateQuestion(question.id, {
           text: userMessage.text,
-          answer: aiResponse.text,
-          confidence: aiResponse.confidence || 85,
-          sources: aiResponse.sources,
+          answer: messageResponse.text,
+          confidence: messageResponse.confidence || 85,
+          sources: messageResponse.sources,
           status: "completed",
-          messages: [...messages, userMessage, aiResponse],
+          messages: [...messages, userMessage, messageResponse],
         });
       }
     } catch (err) {
@@ -177,18 +233,20 @@ export default function LiveSessionScreen({
           </Markdown>
         )}
 
-        {!item.isUser && item.confidence && (
+        {!item.isUser && (item.confidence || (item.images && item.images.length > 0)) && (
           <View style={styles.messageFooter}>
-            <View
-              style={[
-                styles.confidenceBadge,
-                { backgroundColor: colors.success + "20" },
-              ]}
-            >
-              <Text style={[styles.confidenceText, { color: colors.success }]}>
-                {item.confidence}% confidence
-              </Text>
-            </View>
+            {item.confidence && (
+              <View
+                style={[
+                  styles.confidenceBadge,
+                  { backgroundColor: colors.success + "20" },
+                ]}
+              >
+                <Text style={[styles.confidenceText, { color: colors.success }]}>
+                  {item.confidence}% confidence
+                </Text>
+              </View>
+            )}
 
             {item.sources && item.sources.length > 0 && (
               <Text
@@ -196,6 +254,19 @@ export default function LiveSessionScreen({
               >
                 {item.sources.length} sources
               </Text>
+            )}
+
+            {item.images && item.images.length > 0 && (
+              <View style={styles.imageContainer}>
+                {item.images.map((imageUrl, index) => (
+                  <Image
+                    key={index}
+                    source={{ uri: imageUrl }}
+                    style={styles.messageImage}
+                    resizeMode="cover"
+                  />
+                ))}
+              </View>
             )}
           </View>
         )}
@@ -323,6 +394,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  imageContainer: {
+    marginTop: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  messageImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 8,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -404,9 +486,10 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: "row",
-    alignItems: "flex-end",
+    alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 12,
+    paddingBottom: 18,
     borderTopWidth: 1,
     borderTopColor: "rgba(0,0,0,0.1)",
   },
@@ -414,17 +497,21 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     fontSize: 16,
     maxHeight: 100,
     marginRight: 12,
+    minHeight: 40,
+    marginBottom: 4,
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    alignSelf: "flex-end",
+    marginBottom: 4,
   },
   errorText: {
     fontSize: 18,

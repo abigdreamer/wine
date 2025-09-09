@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Import translations
 import en from './locales/en.json';
 import es from './locales/es.json';
+import tl from './locales/tl.json';
 
 const getDeviceLanguage = () => {
   try {
@@ -43,11 +44,12 @@ const initI18n = async () => {
       .init({
         resources: {
           en: { translation: en },
-          es: { translation: es }
+          es: { translation: es },
+          tl: { translation: tl }
         },
         fallbackLng: 'en',
         lng: savedLanguage || getDeviceLanguage(),
-        supportedLngs: ['en', 'es'],
+        supportedLngs: ['en', 'es', 'tl'],
         interpolation: {
           escapeValue: false
         },

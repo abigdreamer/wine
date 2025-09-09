@@ -27,12 +27,23 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   const { textStyles } = useFont();
   const styles = useHomeStyles();
 
-  const handleAskQuestion = () => {
-    if (!question.trim()) return;
+  const handleAskQuestion = (customQuestionOrEvent?: string | any) => {
+    // If it's an event (from button press), use the current question
+    // Otherwise use the custom question passed in
+    const questionText = typeof customQuestionOrEvent === 'string' 
+      ? customQuestionOrEvent 
+      : question.trim();
+      
+    if (!questionText) return;
 
-    const newQuestion = addQuestion(question);
-    navigation.push(MainRoutes.LiveSession, { id: newQuestion.id });
+    // Create a new question in the store
+    const newQuestion = addQuestion(questionText);
+    
+    // Clear the input field
     setQuestion("");
+    
+    // Navigate to LiveSession with the new question ID
+    navigation.push(MainRoutes.LiveSession, { id: newQuestion.id });
   };
 
   const quickActions = [
@@ -41,21 +52,24 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       subtitle: t("home.actions.askAi.subtitle"),
       icon: Zap,
       color: colors.primary,
-      onPress: () => {},
+      onPress: () => handleAskQuestion("Tell me about Domaine Carneros tours and tastings available on this page"),
     },
     {
       title: t("home.actions.liveSession.title"),
       subtitle: t("home.actions.liveSession.subtitle"),
       icon: MessageCircle,
       color: colors.success,
-      onPress: () => navigation.push(MainRoutes.Sessions),
+      onPress: () => {
+        const newQuestion = addQuestion("Hello! I'd like to know more about Domaine Carneros.");
+        navigation.push(MainRoutes.LiveSession, { id: newQuestion.id });
+      },
     },
     {
       title: t("home.actions.history.title"),
       subtitle: t("home.actions.history.subtitle"),
       icon: Clock,
       color: colors.warning,
-      onPress: () => navigation.push(MainRoutes.History),
+      onPress: () => navigation.navigate(MainRoutes.History),
     },
   ];
 

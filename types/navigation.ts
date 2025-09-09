@@ -27,6 +27,7 @@ export type RootStackParamList = {
   };
   [MainRoutes.Preferences]: undefined;
   [MainRoutes.UserInfo]: undefined;
+  TabScreens: undefined; // Add this line
 };
 
 export type MainNavigationProp<
