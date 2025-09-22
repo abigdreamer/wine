@@ -13,11 +13,23 @@ import { Mic, Send, Zap, MessageCircle, Clock } from "lucide-react-native";
 import { useTheme } from "../theme/theme-context";
 import { useFont } from "../theme/font-context";
 import { useQuestions } from "../store/question-store";
+import { getConfig } from "../store/config-storage";
 import { HomeScreenProps, MainRoutes } from "../types/navigation";
 import { useTranslation } from "react-i18next";
 import { useHomeStyles } from "./Home.styles";
 
 const { width } = Dimensions.get("window");
+
+// Utility function to extract winery name from website URL
+const getWineryName = (url?: string): string => {
+  if (!url) return "Domaine Carneros";
+  try {
+    const hostname = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+    return hostname.split('.')[0].charAt(0).toUpperCase() + hostname.split('.')[0].slice(1);
+  } catch {
+    return "Domaine Carneros";
+  }
+};
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
   const [question, setQuestion] = useState<string>("");
@@ -52,15 +64,24 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       subtitle: t("home.actions.askAi.subtitle"),
       icon: Zap,
       color: colors.primary,
-      onPress: () => handleAskQuestion("Tell me about Domaine Carneros tours and tastings available on this page"),
+      onPress: async () => {
+        // Get user config to access their website
+        const config = await getConfig();
+        const wineryName = getWineryName(config?.website);
+        handleAskQuestion(`Tell me about ${wineryName} tours and tastings available on this page`);
+      },
     },
     {
       title: t("home.actions.liveSession.title"),
       subtitle: t("home.actions.liveSession.subtitle"),
       icon: MessageCircle,
       color: colors.success,
-      onPress: () => {
-        const newQuestion = addQuestion("Hello! I'd like to know more about Domaine Carneros.");
+      onPress: async () => {
+        // Get user config to access their website
+        const config = await getConfig();
+        const wineryName = getWineryName(config?.website);
+        const newQuestion = addQuestion(`Hello! I'd like to know more about ${wineryName}.`);
+        console.log('Home: Created new question with status:', newQuestion.status);
         navigation.push(MainRoutes.LiveSession, { id: newQuestion.id });
       },
     },

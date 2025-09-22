@@ -20,6 +20,10 @@ export default function SessionsScreen({ navigation }: SessionsScreenProps) {
   const { t } = useTranslation();
 
   const activeSessions = questions.filter((q) => q.status === "active");
+  
+  console.log('SessionsScreen: Total questions:', questions.length);
+  console.log('SessionsScreen: Active sessions:', activeSessions.length);
+  console.log('SessionsScreen: Questions status:', questions.map(q => ({ id: q.id, status: q.status, text: q.text.substring(0, 30) })));
 
   const renderSession = ({ item }: { item: Question }) => (
     <TouchableOpacity

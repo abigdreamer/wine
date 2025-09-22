@@ -120,7 +120,7 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
         personality: selectedPersonality,
       });
 
-      navigation.navigate(MainRoutes.BottomTab);
+      navigation.navigate(MainRoutes.UserInfo);
     } catch (error) {
       console.error("Error saving preferences:", error);
       Alert.alert(t("error"), t("preferences.saveError"));

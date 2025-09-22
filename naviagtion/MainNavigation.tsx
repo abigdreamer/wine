@@ -6,7 +6,7 @@ import OnboardingScreen from "../screens/Onboarding";
 import BottomTabNavigation from "./BottonTabNavigations";
 import LiveSessionScreen from "../screens/LiveSession";
 import Preferences from "../screens/Preferences";
-import UserInfo from "../screens/UserInfor";
+import UserInfo from "../screens/UserInfo";
 
 const MainNavigation = () => {
   const Stack = createNativeStackNavigator<RootStackParamList>();

@@ -15,6 +15,8 @@ import { useAuth } from "../store/auth-store";
 import { LoginScreenProps, MainRoutes } from "../types/navigation";
 import { styles } from "../style/styles";
 import { useTheme } from "@ui-kitten/components";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQuestions } from "../store/question-store";
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [email, setEmail] = useState("");
@@ -23,6 +25,7 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
   const [isLogin, setIsLogin] = useState(true);
 
   const { login, register, isLoading } = useAuth();
+  const { clearAllQuestions } = useQuestions();
   const colors = useTheme();
 
   const handleSubmit = async () => {
@@ -48,6 +51,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
         await login(email, password);
       } else {
         await register(email, password);
+        // For new user registrations, clear any existing config
+        await AsyncStorage.removeItem("userConfig");
+        // No need to clear questions here as each user has their own questions storage
       }
       navigation.replace(MainRoutes.Preferences);
     } catch (error: any) {

@@ -1,15 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { UserConfig } from "../../store/config-storage";
+import { UserConfig, getConfig } from "../../store/config-storage";
 
 const OPENROUTER_KEY =
-  "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";
+  "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";
 async function getUserConfig(): Promise<UserConfig> {
-  try {
-    const raw = await AsyncStorage.getItem("user_config");
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
-  }
+  return await getConfig() || {};
 }
 
 export interface AIResponse {
@@ -24,10 +19,23 @@ export async function getAIResponse(
     console.log('AI Service received messages:', messages);
     const config = await getUserConfig();
 
+    const getWineryName = (url: string | undefined): string => {
+      if (!url) return "Domaine Carneros";
+      try {
+        // Try to extract domain without www. prefix
+        const hostname = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+        return hostname.split('.')[0];
+      } catch {
+        return "Domaine Carneros";
+      }
+    };
+
+    const wineryName = getWineryName(config.website);
+    
     const systemPrompt = `
   You are a ${
     config.personality || "friendly sommelier"
-  } AI concierge for Domaine Carneros winery.
+  } AI concierge for ${wineryName} winery.
   Always respond in ${config.language || "English"}.
   User's name (if provided): ${config.name || "Guest"}.
   Website: ${config.website || "http://domainecarneros.com/"}.
@@ -35,7 +43,7 @@ export async function getAIResponse(
   Font preference: ${config.font || "system"}.
   
   Important Notes:
-  - Focus on providing accurate information about Domaine Carneros tours and tastings:
+  - Focus on providing accurate information about ${wineryName} tours and tastings:
     * Available tour types and tasting experiences
     * Current pricing and booking requirements
     * What's included in each tasting package
@@ -57,7 +65,7 @@ export async function getAIResponse(
     * Food pairing examples
     * Special events and experiences
   - Keep tone professional yet approachable, aligned with personality preference
-  - If user asks about unrelated topics, redirect to Domaine Carneros offerings
+  - If user asks about unrelated topics, redirect to ${wineryName} offerings
   - When sharing tour/tasting info, always mention:
     * Advance booking requirements
     * Duration of experience

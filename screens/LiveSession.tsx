@@ -97,7 +97,7 @@ export default function LiveSessionScreen({
           answer: aiMessage.text,
           confidence: aiMessage.confidence,
           sources: aiMessage.sources,
-          status: "completed",
+          status: "active", // Keep as active so it shows in the Sessions screen
         });
       } catch (error) {
         console.error('AI Response Error:', error);
@@ -181,7 +181,7 @@ export default function LiveSessionScreen({
           answer: messageResponse.text,
           confidence: messageResponse.confidence || 85,
           sources: messageResponse.sources,
-          status: "completed",
+          status: "active", // Keep as active
           messages: [...messages, userMessage, messageResponse],
         });
       }

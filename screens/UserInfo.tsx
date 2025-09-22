@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Platform,
   KeyboardAvoidingView,
@@ -8,12 +8,13 @@ import {
   TouchableOpacity,
   Pressable,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../theme/theme-context";
 import { MainRoutes, UserInfoScreenProps } from "../types/navigation";
 import { User, Globe, ChevronLeft } from "lucide-react-native";
-import { saveConfig } from "../store/config-storage";
+import { saveConfig, getConfig } from "../store/config-storage";
 
 import { StyleSheet } from 'react-native';
 
@@ -112,8 +113,64 @@ const styles = StyleSheet.create({
 
 export default function UserInfo({ navigation }: UserInfoScreenProps) {
   const [name, setName] = useState("");
-  const [website, setWebsite] = useState("https://www.domainecarneros.com");
+  const [website, setWebsite] = useState("");
+  const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
+  const [loadingFavicon, setLoadingFavicon] = useState(false);
   const { colors } = useTheme();
+
+  // Load existing config values if available, but only for returning users
+  useEffect(() => {
+    const loadConfig = async () => {
+      const config = await getConfig();
+      // Only load saved values if both name and website exist
+      // This ensures new signups get empty fields
+      if (config && config.name && config.website) {
+        setName(config.name);
+        setWebsite(config.website);
+        fetchFavicon(config.website);
+      }
+    };
+    
+    loadConfig();
+  }, []);
+
+  const fetchFavicon = (url: string) => {
+    if (!url) return;
+    
+    try {
+      setLoadingFavicon(true);
+      
+      // Parse the URL to get the domain
+      let domain = url;
+      if (!domain.startsWith('http')) {
+        domain = 'https://' + domain;
+      }
+      
+      // Extract hostname from URL string without using URL object properties
+      let hostname = domain.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+      
+      // Different favicon services we can try
+      // 1. Google's favicon service
+      const googleFaviconUrl = `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+      
+      // Set the favicon URL
+      setFaviconUrl(googleFaviconUrl);
+    } catch (error) {
+      console.error('Error parsing URL:', error);
+      setFaviconUrl(null);
+    } finally {
+      setLoadingFavicon(false);
+    }
+  };
+
+  // Update favicon when website changes
+  useEffect(() => {
+    if (website) {
+      fetchFavicon(website);
+    } else {
+      setFaviconUrl(null);
+    }
+  }, [website]);
 
   const handleContinue = async () => {
     if (!name || !website) {
@@ -139,7 +196,7 @@ export default function UserInfo({ navigation }: UserInfoScreenProps) {
             <ChevronLeft size={24} color={colors.text} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.text }]}>
-            User Infosssss
+            User Info
           </Text>
         </View>
 
@@ -194,8 +251,7 @@ export default function UserInfo({ navigation }: UserInfoScreenProps) {
               <View>
                 <TextInput
                   value={website}
-                  editable={false}
-                  placeholder='Enter your website'
+                  placeholder='Enter your winery website (e.g., https://www.example.com)'
                   onChangeText={setWebsite}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -224,14 +280,44 @@ export default function UserInfo({ navigation }: UserInfoScreenProps) {
             <View
               style={{
                 alignItems: 'center',
+                height: 100,
+                justifyContent: 'center',
+                marginVertical: 20,
               }}>
-              <Image
-                source={require('../assets/images/logo.png')}
-                style={{
-                  width: 300,
+              {loadingFavicon ? (
+                <ActivityIndicator size="large" color={colors.primary} />
+              ) : faviconUrl ? (
+                <Image
+                  source={{ uri: faviconUrl }}
+                  style={{
+                    width: 100,
+                    height: 100,
+                    borderRadius: 10,
+                  }}
+                  resizeMode="contain"
+                />
+              ) : (
+                <View style={{
+                  width: 100,
                   height: 100,
-                }}
-              />
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderStyle: 'dashed',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                  <Globe size={40} color={colors.textSecondary} />
+                  <Text style={{
+                    fontSize: 12,
+                    color: colors.textSecondary,
+                    marginTop: 8,
+                    textAlign: 'center',
+                  }}>
+                    Enter website to see logo
+                  </Text>
+                </View>
+              )}
             </View>
 
             <TouchableOpacity

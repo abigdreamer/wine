@@ -18,6 +18,7 @@ import {
   CreditCard,
   LogOut,
   ChevronRight,
+  UserCog,
 } from "lucide-react-native";
 import { useAuth } from "../store/auth-store";
 import { useTheme } from "../theme/theme-context";
@@ -45,6 +46,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   };
 
   const menuItems = [
+    {
+      icon: UserCog,
+      title: "User Information",
+      subtitle: "Update your profile",
+      onPress: () => navigation.navigate(MainRoutes.UserInfo),
+    },
     {
       icon: BarChart3,
       title: "Usage Statistics",
