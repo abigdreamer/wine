@@ -1,8 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserConfig, getConfig } from "../../store/config-storage";
-
-const OPENROUTER_KEY =
-  "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";
+import { OPENROUTER_KEY } from '@env';
 async function getUserConfig(): Promise<UserConfig> {
   return await getConfig() || {};
 }
