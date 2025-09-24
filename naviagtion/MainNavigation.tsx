@@ -6,6 +6,7 @@ import OnboardingScreen from "../screens/Onboarding";
 import BottomTabNavigation from "./BottonTabNavigations";
 import LiveSessionScreen from "../screens/LiveSession";
 import Preferences from "../screens/Preferences";
+import FileUpload from "../screens/FileUpload";
 import UserInfo from "../screens/UserInfo";
 
 const MainNavigation = () => {
@@ -18,6 +19,7 @@ const MainNavigation = () => {
     >
       <Stack.Screen name={MainRoutes.Login} component={LoginScreen} />
       <Stack.Screen name={MainRoutes.Preferences} component={Preferences} />
+      <Stack.Screen name={MainRoutes.FileUpload} component={FileUpload} />
       <Stack.Screen name={MainRoutes.UserInfo} component={UserInfo} />
       <Stack.Screen name={MainRoutes.Onboarding} component={OnboardingScreen} />
       <Stack.Screen

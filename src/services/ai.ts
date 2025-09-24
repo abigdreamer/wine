@@ -2,9 +2,101 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserConfig, getConfig } from "../../store/config-storage";
 
 const OPENROUTER_KEY =
-  "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";
+  "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";
 async function getUserConfig(): Promise<UserConfig> {
   return await getConfig() || {};
+}
+
+// Get the current user ID from AsyncStorage
+async function getCurrentUserId(): Promise<string | null> {
+  try {
+    const userJson = await AsyncStorage.getItem('user');
+    if (!userJson) {
+      console.log('No user found in AsyncStorage');
+      return null;
+    }
+    
+    const userData = JSON.parse(userJson);
+    return userData.id || null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+}
+
+// Get user-specific storage key
+async function getUserStorageKey(baseKey: string): Promise<string> {
+  const userId = await getCurrentUserId();
+  return userId ? `${baseKey}_${userId}` : baseKey;
+}
+
+// Function to get uploaded file info
+async function getUploadedFileInfo(): Promise<any> {
+  try {
+    console.log('Getting file info from AsyncStorage');
+    
+    // Get user-specific file key
+    const fileKey = await getUserStorageKey('userUploadedFile');
+    console.log('Using storage key:', fileKey);
+    
+    const fileDataJson = await AsyncStorage.getItem(fileKey);
+    if (!fileDataJson) {
+      console.log('No file has been uploaded for this user');
+      return null;
+    }
+    
+    try {
+      const parsedData = JSON.parse(fileDataJson);
+      console.log('File metadata found:', {
+        name: parsedData.name,
+        type: parsedData.type,
+        size: parsedData.size,
+        uploadDate: parsedData.uploadDate
+      });
+      return parsedData;
+    } catch (parseError) {
+      console.error('Error parsing file data JSON:', parseError);
+      
+      // If JSON parsing fails, try to remove corrupted data
+      await AsyncStorage.removeItem(fileKey);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error getting uploaded file info:', error);
+    return null;
+  }
+}
+
+// Get file content from AsyncStorage if available
+async function getFileContent(): Promise<string> {
+  try {
+    console.log('Getting file content from AsyncStorage');
+    
+    // Get user-specific file keys
+    const fileInfoKey = await getUserStorageKey('userUploadedFile');
+    const contentKey = await getUserStorageKey('userUploadedFileContent');
+    
+    // First check if file info exists
+    const fileInfo = await AsyncStorage.getItem(fileInfoKey);
+    if (!fileInfo) {
+      console.log('No file info found for current user, cannot retrieve content');
+      return '';
+    }
+    
+    const fileContent = await AsyncStorage.getItem(contentKey);
+    
+    if (!fileContent) {
+      console.log('No file content found in AsyncStorage for current user');
+      return '';
+    }
+    
+    console.log('Retrieved file content from AsyncStorage:', 
+      fileContent ? `${fileContent.substring(0, 100)}... (${fileContent.length} chars)` : 'No content found');
+    return fileContent;
+  } catch (error) {
+    console.error('Error getting file content:', error);
+    return '';
+  }
 }
 
 export interface AIResponse {
@@ -18,30 +110,46 @@ export async function getAIResponse(
   try {
     console.log('AI Service received messages:', messages);
     const config = await getUserConfig();
+    console.log('User config:', config);
+    
+    const fileInfo = await getUploadedFileInfo();
+    console.log('File info:', fileInfo);
+    
+    const fileContent = await getFileContent();
+    console.log('File content available:', !!fileContent);
 
-    const getWineryName = (url: string | undefined): string => {
-      if (!url) return "Domaine Carneros";
+    // Determine winery name from website URL if available, otherwise use generic term
+    let wineryName = "your winery";
+    
+    if (config.website) {
       try {
         // Try to extract domain without www. prefix
-        const hostname = url.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
-        return hostname.split('.')[0];
+        const hostname = config.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+        wineryName = hostname.split('.')[0];
       } catch {
-        return "Domaine Carneros";
+        // Keep default generic name
       }
-    };
-
-    const wineryName = getWineryName(config.website);
+    }
+    
+    console.log('Building system prompt with personality:', config.personality);
+    console.log('File content available for prompt:', fileContent ? 'Yes' : 'No');
     
     const systemPrompt = `
   You are a ${
     config.personality || "friendly sommelier"
-  } AI concierge for ${wineryName} winery.
+  } AI concierge for a winery.
   Always respond in ${config.language || "English"}.
   User's name (if provided): ${config.name || "Guest"}.
-  Website: ${config.website || "http://domainecarneros.com/"}.
   Theme preference: ${config.theme || "default"}.
   Font preference: ${config.font || "system"}.
   
+  ${fileContent ? `
+  IMPORTANT: Use the following uploaded document as your primary source of knowledge:
+  
+  ${fileContent}
+  
+  Base all your answers on the above information. The document contains the specific details about the winery you're representing. Extract the winery name, tour information, pricing, and all other details from this document.
+  ` : `
   Important Notes:
   - Focus on providing accurate information about ${wineryName} tours and tastings:
     * Available tour types and tasting experiences
@@ -58,6 +166,15 @@ export async function getAIResponse(
     * Cancellation policies
     * Special accommodations or accessibility
     * Food and wine pairing options
+  - If user asks about unrelated topics, redirect to winery offerings
+  - When sharing tour/tasting info, always mention:
+    * Advance booking requirements
+    * Duration of experience
+    * What's included
+    * Current pricing
+    * Any seasonal variations
+  `}
+  
   - Include relevant images (using markdown format: ![description](image_url)) for:
     * Tasting rooms and spaces
     * Tour locations and views
@@ -65,13 +182,6 @@ export async function getAIResponse(
     * Food pairing examples
     * Special events and experiences
   - Keep tone professional yet approachable, aligned with personality preference
-  - If user asks about unrelated topics, redirect to ${wineryName} offerings
-  - When sharing tour/tasting info, always mention:
-    * Advance booking requirements
-    * Duration of experience
-    * What's included
-    * Current pricing
-    * Any seasonal variations
   `;
 
     const response = await fetch(

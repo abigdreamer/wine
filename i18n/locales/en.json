@@ -136,5 +136,22 @@
     "nameRequired": "Please enter your name",
     "websiteRequired": "Please enter your website",
     "save": "Save Changes"
+  },
+  "fileUpload": {
+    "title": "Upload Document",
+    "selectPrompt": "Select a document to upload",
+    "supportedFormats": "Supported formats: PDF, DOC, DOCX, TXT",
+    "selectDocument": "Select Document",
+    "upload": "Upload Document",
+    "uploadComplete": "Upload complete!",
+    "continue": "Continue",
+    "noFileError": "Please select a document first",
+    "uploadError": "Failed to upload document",
+    "currentDocument": "Current Document",
+    "deleteDocument": "Delete Document",
+    "noDocuments": "No documents uploaded",
+    "confirmDelete": "Are you sure you want to delete this document?",
+    "documentDeleted": "Document deleted successfully",
+    "limitReached": "You can only upload one document. Delete the current one to upload a new document."
   }
 }

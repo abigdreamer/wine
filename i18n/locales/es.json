@@ -136,5 +136,22 @@
     "nameRequired": "Por favor ingresa tu nombre",
     "websiteRequired": "Por favor ingresa tu sitio web",
     "save": "Guardar Cambios"
+  },
+  "fileUpload": {
+    "title": "Subir Documento",
+    "selectPrompt": "Selecciona un documento para subir",
+    "supportedFormats": "Formatos soportados: PDF, DOC, DOCX, TXT",
+    "selectDocument": "Seleccionar Documento",
+    "upload": "Subir Documento",
+    "uploadComplete": "¡Subida completa!",
+    "continue": "Continuar",
+    "noFileError": "Por favor selecciona un documento primero",
+    "uploadError": "Error al subir el documento",
+    "currentDocument": "Documento Actual",
+    "deleteDocument": "Eliminar Documento",
+    "noDocuments": "No hay documentos subidos",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este documento?",
+    "documentDeleted": "Documento eliminado con éxito",
+    "limitReached": "Solo puedes subir un documento. Elimina el actual para subir uno nuevo."
   }
 }

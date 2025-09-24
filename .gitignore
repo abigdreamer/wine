@@ -75,3 +75,7 @@ ios/Pods/.last_build_configuration
 
 # Test coverage
 coverage/
+
+# iOS
+ios/Pods/
+ios/build/

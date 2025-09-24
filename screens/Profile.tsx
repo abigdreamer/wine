@@ -19,6 +19,7 @@ import {
   LogOut,
   ChevronRight,
   UserCog,
+  FileText,
 } from "lucide-react-native";
 import { useAuth } from "../store/auth-store";
 import { useTheme } from "../theme/theme-context";
@@ -51,6 +52,12 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       title: "User Information",
       subtitle: "Update your profile",
       onPress: () => navigation.navigate(MainRoutes.UserInfo),
+    },
+    {
+      icon: FileText,
+      title: "Document Upload",
+      subtitle: "Upload and manage files",
+      onPress: () => navigation.navigate(MainRoutes.FileUpload, { source: 'Profile' }),
     },
     {
       icon: BarChart3,

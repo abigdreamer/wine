@@ -11,6 +11,7 @@ export enum MainRoutes {
   BottomTab = "BottomTab",
   LiveSession = "LiveSession",
   Preferences = "Preferences",
+  FileUpload = "FileUpload",
   UserInfo = "UserInfo",
 }
 
@@ -26,6 +27,9 @@ export type RootStackParamList = {
     id: string;
   };
   [MainRoutes.Preferences]: undefined;
+  [MainRoutes.FileUpload]: {
+    source?: string;
+  };
   [MainRoutes.UserInfo]: undefined;
   TabScreens: undefined; // Add this line
 };
@@ -73,4 +77,9 @@ export type PreferencesScreenProps = {
 
 export type UserInfoScreenProps = {
   navigation: MainNavigationProp<MainRoutes.UserInfo>;
+};
+
+export type FileUploadScreenProps = {
+  navigation: MainNavigationProp<MainRoutes.FileUpload>;
+  route: RouteProp<RootStackParamList, MainRoutes.FileUpload>;
 };

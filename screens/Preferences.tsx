@@ -120,7 +120,7 @@ export default function Preferences({ navigation }: PreferencesScreenProps) {
         personality: selectedPersonality,
       });
 
-      navigation.navigate(MainRoutes.UserInfo);
+      navigation.navigate(MainRoutes.FileUpload, { source: 'Preferences' });
     } catch (error) {
       console.error("Error saving preferences:", error);
       Alert.alert(t("error"), t("preferences.saveError"));
