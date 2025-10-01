@@ -21,7 +21,7 @@ import { Message } from "../types/message";
 import { LiveSessionScreenProps } from "../types/navigation";
 import { getAIResponse } from "../src/services/ai";
 import Markdown from "react-native-markdown-display";
-
+ 
 export default function LiveSessionScreen({
   navigation,
   route,
@@ -35,6 +35,9 @@ export default function LiveSessionScreen({
   const [currentSpeakingMessageId, setCurrentSpeakingMessageId] = useState<string | null>(null);
   const [highlightedWordIndex, setHighlightedWordIndex] = useState<number>(-1);
   const speechIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const ttsStartListener = useRef<((event: any) => void) | null>(null);
+  const ttsFinishListener = useRef<((event: any) => void) | null>(null);
+  const ttsCancelListener = useRef<((event: any) => void) | null>(null);
   const { colors } = useTheme();
   const { questions, updateQuestion } = useQuestions();
   const flatListRef = useRef<FlatList>(null);
@@ -50,7 +53,8 @@ export default function LiveSessionScreen({
         Tts.setDefaultLanguage('en-US');
         Tts.setDefaultRate(0.5);
 
-        Tts.addEventListener('tts-start', (event: any) => {
+        // Create listener functions and store references
+        ttsStartListener.current = (event: any) => { 
           console.log('TTS started:', event);
           setIsSpeaking(true);
           // Clear any existing timer
@@ -62,9 +66,9 @@ export default function LiveSessionScreen({
           speechIntervalRef.current = setInterval(() => {
             setHighlightedWordIndex((prev: number) => prev + 1);
           }, 450); // Roughly 2.2 words per second for 0.5 speed
-        });
+        };
 
-        Tts.addEventListener('tts-finish', (event: any) => {
+        ttsFinishListener.current = (event: any) => {
           console.log('TTS finished:', event);
           setIsSpeaking(false);
           setHighlightedWordIndex(-1); // Reset highlighting
@@ -74,9 +78,9 @@ export default function LiveSessionScreen({
             clearInterval(speechIntervalRef.current);
             speechIntervalRef.current = null;
           }
-        });
+        };
 
-        Tts.addEventListener('tts-cancel', (event: any) => {
+        ttsCancelListener.current = (event: any) => {
           console.log('TTS cancelled:', event);
           setIsSpeaking(false);
           setHighlightedWordIndex(-1); // Reset highlighting
@@ -86,7 +90,12 @@ export default function LiveSessionScreen({
             clearInterval(speechIntervalRef.current);
             speechIntervalRef.current = null;
           }
-        });
+        };
+
+        // Add event listeners
+        Tts.addEventListener('tts-start', ttsStartListener.current);
+        Tts.addEventListener('tts-finish', ttsFinishListener.current);
+        Tts.addEventListener('tts-cancel', ttsCancelListener.current);
 
       } catch (error: any) {
         console.error('Error initializing TTS:', error);
@@ -99,9 +108,16 @@ export default function LiveSessionScreen({
     initializeTTS();
 
     return () => {
-      Tts.removeEventListener('tts-start', () => {});
-      Tts.removeEventListener('tts-finish', () => {});
-      Tts.removeEventListener('tts-cancel', () => {});
+      // Properly remove event listeners using the stored references
+      if (ttsStartListener.current) {
+        Tts.removeEventListener('tts-start', ttsStartListener.current);
+      }
+      if (ttsFinishListener.current) {
+        Tts.removeEventListener('tts-finish', ttsFinishListener.current);
+      }
+      if (ttsCancelListener.current) {
+        Tts.removeEventListener('tts-cancel', ttsCancelListener.current);
+      }
     };
   }, []);
 
@@ -185,7 +201,7 @@ export default function LiveSessionScreen({
       }, 100); // Small delay to sync with TTS start
     }
     
-    Tts.speak(cleanText);
+    Tts.speak(cleanText); 
   };
 
   // Render highlighted text for speaking messages
