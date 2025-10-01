@@ -11,8 +11,10 @@ import {
   Animated,
   Image,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Send, ArrowLeft, MoreVertical } from "lucide-react-native";
+import { Send, ArrowLeft, MoreVertical, Volume2, VolumeX } from "lucide-react-native";
+import Tts from 'react-native-tts';
 import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Message } from "../types/message";
@@ -28,12 +30,225 @@ export default function LiveSessionScreen({
   const [newMessage, setNewMessage] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState<boolean>(false);
+  const [isTtsEnabled, setIsTtsEnabled] = useState<boolean>(false);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [currentSpeakingMessageId, setCurrentSpeakingMessageId] = useState<string | null>(null);
+  const [highlightedWordIndex, setHighlightedWordIndex] = useState<number>(-1);
+  const speechIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { colors } = useTheme();
   const { questions, updateQuestion } = useQuestions();
   const flatListRef = useRef<FlatList>(null);
   const typingAnimation = useRef(new Animated.Value(0)).current;
 
   const question = questions.find((q) => q.id === id);
+
+  // Initialize TTS
+  useEffect(() => {
+    const initTts = async () => {
+      try {
+        const ttsEnabled = await AsyncStorage.getItem('ttsEnabled');
+        setIsTtsEnabled(ttsEnabled === 'true');
+        
+        await Tts.getInitStatus();
+        Tts.setDefaultLanguage('en-US');
+        Tts.setDefaultRate(0.5);
+        
+        Tts.addEventListener('tts-start', (event) => {
+          console.log('TTS started:', event);
+          setIsSpeaking(true);
+        });
+        
+        Tts.addEventListener('tts-finish', (event) => {
+          console.log('TTS finished:', event);
+          setIsSpeaking(false);
+          setCurrentSpeakingMessageId(null);
+          setHighlightedWordIndex(-1);
+          
+          // Clear timer
+          if (speechIntervalRef.current) {
+            clearInterval(speechIntervalRef.current);
+            speechIntervalRef.current = null;
+          }
+        });
+        
+        Tts.addEventListener('tts-cancel', (event) => {
+          console.log('TTS cancelled:', event);
+          setIsSpeaking(false);
+          setCurrentSpeakingMessageId(null);
+          setHighlightedWordIndex(-1);
+          
+          // Clear timer
+          if (speechIntervalRef.current) {
+            clearInterval(speechIntervalRef.current);
+            speechIntervalRef.current = null;
+          }
+        });
+      } catch (error: any) {
+        console.error('TTS init error:', error);
+        if (error.code === 'no_engine') {
+          Tts.requestInstallEngine();
+        }
+      }
+    };
+    
+    initTts();
+    
+    return () => {
+      Tts.removeEventListener('tts-start', () => {});
+      Tts.removeEventListener('tts-finish', () => {});
+      Tts.removeEventListener('tts-cancel', () => {});
+      
+      // Clear timer on cleanup
+      if (speechIntervalRef.current) {
+        clearInterval(speechIntervalRef.current);
+        speechIntervalRef.current = null;
+      }
+      
+      try {
+        if (Platform.OS === 'ios') {
+          Tts.stop(false);
+        } else {
+          Tts.stop();
+        }
+      } catch (error) {
+        console.log('TTS cleanup error:', error);
+      }
+    };
+  }, []);
+
+  // Toggle TTS
+  const toggleTts = async () => {
+    const newState = !isTtsEnabled;
+    setIsTtsEnabled(newState);
+    await AsyncStorage.setItem('ttsEnabled', newState.toString());
+    if (!newState && isSpeaking) {
+      // Clear timer when turning off TTS
+      if (speechIntervalRef.current) {
+        clearInterval(speechIntervalRef.current);
+        speechIntervalRef.current = null;
+      }
+      
+      try {
+        if (Platform.OS === 'ios') {
+          Tts.stop(false);
+        } else {
+          Tts.stop();
+        }
+      } catch (error) {
+        console.log('TTS stop error:', error);
+      }
+    }
+  };
+
+  // Speak message
+  const speakMessage = (text: string, messageId: string) => {
+    if (!isTtsEnabled) return;
+    
+    // Clear any existing timer
+    if (speechIntervalRef.current) {
+      clearInterval(speechIntervalRef.current);
+      speechIntervalRef.current = null;
+    }
+    
+    try {
+      if (Platform.OS === 'ios') {
+        Tts.stop(false); // Stop any current speech
+      } else {
+        Tts.stop();
+      }
+    } catch (error) {
+      console.log('TTS stop error:', error);
+    }
+    
+    setCurrentSpeakingMessageId(messageId);
+    setHighlightedWordIndex(0);
+    
+    const cleanText = text.replace(/[*_~`]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    
+    // Start word highlighting timer
+    const words = cleanText.split(/\s+/).filter(word => word.length > 0);
+    const totalWords = words.length;
+    
+    if (totalWords > 0) {
+      // Estimate speech duration based on TTS rate and word count
+      // At rate 0.5, roughly 120-150 words per minute
+      const wordsPerSecond = 2.2; // approximately 132 words per minute
+      const wordDuration = 1000 / wordsPerSecond; // milliseconds per word
+      
+      // Start highlighting from first word
+      let currentWordIndex = 0;
+      setHighlightedWordIndex(0);
+      
+      // Start the timer after a small delay to sync with TTS start
+      setTimeout(() => {
+        speechIntervalRef.current = setInterval(() => {
+          currentWordIndex++;
+          if (currentWordIndex < totalWords) {
+            setHighlightedWordIndex(currentWordIndex);
+          } else {
+            // Clear interval when we reach the end
+            if (speechIntervalRef.current) {
+              clearInterval(speechIntervalRef.current);
+              speechIntervalRef.current = null;
+            }
+          }
+        }, wordDuration);
+      }, 100); // Small delay to sync with TTS start
+    }
+    
+    Tts.speak(cleanText);
+  };
+
+  // Render highlighted text for speaking messages
+  const renderHighlightedText = (text: string, messageId: string) => {
+    const isCurrentlySpeaking = currentSpeakingMessageId === messageId;
+    
+    if (!isCurrentlySpeaking || highlightedWordIndex === -1) {
+      return (
+        <Markdown
+          style={{
+            body: { color: colors.text, fontSize: 16, lineHeight: 22 },
+            strong: { fontWeight: "700" },
+            bullet_list: { marginVertical: 4 },
+            list_item: { flexDirection: "row", marginBottom: 4 },
+            link: { color: colors.primary, textDecorationLine: "underline" },
+          }}
+        >
+          {text}
+        </Markdown>
+      );
+    }
+
+    // Clean text and split into words for highlighting (same as speech processing)
+    const cleanText = text.replace(/[*_~`]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    const words = cleanText.split(/\s+/).filter(word => word.length > 0);
+    
+    return (
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+        {words.map((word, index) => (
+          <Text
+            key={index}
+            style={[
+              { 
+                color: colors.text, 
+                fontSize: 16, 
+                lineHeight: 22,
+                marginRight: 4,
+                paddingHorizontal: 2,
+                borderRadius: 4,
+              },
+              index === highlightedWordIndex && {
+                backgroundColor: colors.primary + '40',
+                fontWeight: 'bold',
+              }
+            ]}
+          >
+            {word}
+          </Text>
+        ))}
+      </View>
+    );
+  };
 
   useEffect(() => {
     const initializeSession = async () => {
@@ -44,7 +259,7 @@ export default function LiveSessionScreen({
 
       // If we already have an answer, just display the existing conversation
       if (question.text && question.answer) {
-        setMessages([
+        const existingMessages = [
           {
             id: "1",
             text: question.text,
@@ -59,7 +274,14 @@ export default function LiveSessionScreen({
             confidence: question.confidence,
             sources: question.sources,
           }
-        ]);
+        ];
+        
+        // If question has stored messages, use those instead
+        if (question.messages && question.messages.length > 0) {
+          setMessages(question.messages);
+        } else {
+          setMessages(existingMessages);
+        }
         return;
       }
 
@@ -90,18 +312,25 @@ export default function LiveSessionScreen({
           images: aiResponse.images,
         };
 
-        setMessages([userMessage, aiMessage]);
+        const newMessages = [userMessage, aiMessage];
+        setMessages(newMessages);
         
-        // Update question in store
+        // Auto-speak AI response if TTS is enabled
+        if (isTtsEnabled) {
+          setTimeout(() => speakMessage(aiMessage.text, aiMessage.id), 500);
+        }
+        
+        // Update question in store with messages
         updateQuestion(question.id, {
           answer: aiMessage.text,
           confidence: aiMessage.confidence,
           sources: aiMessage.sources,
           status: "active", // Keep as active so it shows in the Sessions screen
+          messages: newMessages,
         });
       } catch (error) {
         console.error('AI Response Error:', error);
-        setMessages([
+        const errorMessages = [
           userMessage,
           {
             id: Date.now().toString(),
@@ -109,14 +338,22 @@ export default function LiveSessionScreen({
             isUser: false,
             timestamp: Date.now(),
           }
-        ]);
+        ];
+        setMessages(errorMessages);
+        
+        // Update question in store with error messages
+        updateQuestion(question.id, {
+          answer: "Sorry, I couldn't connect to the AI service.",
+          status: "active",
+          messages: errorMessages,
+        });
       } finally {
         setIsTyping(false);
       }
     };
 
     initializeSession();
-  }, [question, updateQuestion]);
+  }, [question, updateQuestion, isTtsEnabled]);
 
   useEffect(() => {
     if (isTyping) {
@@ -175,9 +412,14 @@ export default function LiveSessionScreen({
       setMessages((prev) => [...prev, messageResponse]);
       setIsTyping(false);
 
+      // Auto-speak AI response if TTS is enabled
+      if (isTtsEnabled) {
+        setTimeout(() => speakMessage(messageResponse.text, messageResponse.id), 500);
+      }
+
       if (question) {
         updateQuestion(question.id, {
-          text: userMessage.text,
+          text: question.text, // Keep original question text
           answer: messageResponse.text,
           confidence: messageResponse.confidence || 85,
           sources: messageResponse.sources,
@@ -220,17 +462,67 @@ export default function LiveSessionScreen({
             {item.text}
           </Text>
         ) : (
-          <Markdown
-            style={{
-              body: { color: colors.text, fontSize: 16, lineHeight: 22 },
-              strong: { fontWeight: "700" },
-              bullet_list: { marginVertical: 4 },
-              list_item: { flexDirection: "row", marginBottom: 4 },
-              link: { color: colors.primary, textDecorationLine: "underline" },
-            }}
-          >
-            {item.text}
-          </Markdown>
+          <View>
+            {renderHighlightedText(item.text, item.id)}
+            
+            {isTtsEnabled && (
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                {isSpeaking && currentSpeakingMessageId === item.id ? (
+                  <TouchableOpacity 
+                    onPress={() => {
+                      // Clear timer when manually stopping
+                      if (speechIntervalRef.current) {
+                        clearInterval(speechIntervalRef.current);
+                        speechIntervalRef.current = null;
+                      }
+                      
+                      try {
+                        if (Platform.OS === 'ios') {
+                          Tts.stop(false);
+                        } else {
+                          Tts.stop();
+                        }
+                      } catch (error) {
+                        console.log('TTS stop error:', error);
+                      }
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 4,
+                      paddingHorizontal: 8,
+                      backgroundColor: colors.error + '20',
+                      borderRadius: 12,
+                      alignSelf: 'flex-start'
+                    }}
+                  >
+                    <VolumeX size={14} color={colors.error} />
+                    <Text style={{ color: colors.error, fontSize: 12, marginLeft: 4 }}>
+                      Stop
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity 
+                    onPress={() => speakMessage(item.text, item.id)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 4,
+                      paddingHorizontal: 8,
+                      backgroundColor: colors.primary + '20',
+                      borderRadius: 12,
+                      alignSelf: 'flex-start'
+                    }}
+                  >
+                    <Volume2 size={14} color={colors.primary} />
+                    <Text style={{ color: colors.primary, fontSize: 12, marginLeft: 4 }}>
+                      Speak
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+          </View>
         )}
 
         {!item.isUser && (item.confidence || (item.images && item.images.length > 0)) && (
@@ -338,13 +630,33 @@ export default function LiveSessionScreen({
           <Text
             style={[styles.headerSubtitle, { color: colors.textSecondary }]}
           >
-            AI Concierge
+            AI Concierge {isSpeaking && "• Speaking"}
           </Text>
         </View>
 
-        <TouchableOpacity>
-          <MoreVertical size={24} color={colors.text} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity 
+            onPress={toggleTts}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: isTtsEnabled ? colors.primary + '20' : 'transparent'
+            }}
+          >
+            {isTtsEnabled ? (
+              <Volume2 size={20} color={colors.primary} />
+            ) : (
+              <VolumeX size={20} color={colors.text} />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity>
+            <MoreVertical size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList

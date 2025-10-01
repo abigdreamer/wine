@@ -197,24 +197,47 @@ export async function getAIResponse(
       }
     );
 
-    const data = await response.json();
-
-    if (!data.choices || !data.choices[0]) {
-      console.error("Invalid OpenRouter response:", data);
+    if (!response.ok) {
+      console.error("OpenRouter API HTTP error:", response.status, response.statusText);
       return {
-        text: "Sorry, I didn't understand that."
+        text: "Sorry, I couldn't connect to the AI service. Please try again."
       };
     }
 
-    const content = data.choices[0].message.content.trim();
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("OpenRouter API error:", data.error);
+      return {
+        text: "Sorry, there was an error with the AI service. Please try again."
+      };
+    }
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error("Invalid OpenRouter response structure:", data);
+      return {
+        text: "Sorry, I didn't understand that. Please try rephrasing your question."
+      };
+    }
+
+    const content = data.choices[0].message.content;
+    
+    if (!content || typeof content !== 'string') {
+      console.error("Invalid message content in OpenRouter response:", data.choices[0].message);
+      return {
+        text: "Sorry, I received an invalid response. Please try again."
+      };
+    }
+    
+    const trimmedContent = content.trim();
     
     // Parse the response for any image URLs
     // Looking for markdown format images: ![description](url)
     const imageRegex = /!\[.*?\]\((https?:\/\/[^\s)]+)\)/g;
-    const images = [...content.matchAll(imageRegex)].map(match => match[1]);
+    const images = [...trimmedContent.matchAll(imageRegex)].map(match => match[1]);
     
     // Remove the image markdown from the text
-    const textContent = content.replace(imageRegex, '').trim();
+    const textContent = trimmedContent.replace(imageRegex, '').trim();
 
     return {
       text: textContent,
@@ -222,8 +245,22 @@ export async function getAIResponse(
     };
   } catch (err) {
     console.error("OpenRouter API error:", err);
+    
+    // Provide more specific error messages based on error type
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      return {
+        text: "Sorry, I couldn't connect to the AI service. Please check your internet connection."
+      };
+    }
+    
+    if (err instanceof SyntaxError) {
+      return {
+        text: "Sorry, there was an error processing the AI response. Please try again."
+      };
+    }
+    
     return {
-      text: "Sorry, I couldn't connect to the AI service."
+      text: "Sorry, I couldn't connect to the AI service. Please try again later."
     };
   }
 }
