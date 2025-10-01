@@ -67,9 +67,9 @@ const FileUpload: React.FC<FileUploadScreenProps> = ({ navigation, route }) => {
         } catch (parseError) {
           console.error('Error parsing stored file data:', parseError);
           // If data is corrupted, clear it
-          await AsyncStorage.removeItem('userUploadedFile');
+          await AsyncStorage.removeItem('userUploadedFile'); 
           await AsyncStorage.removeItem('userUploadedFileContent');
-        }
+        } 
       } else {
         console.log('No document found in storage');
       }

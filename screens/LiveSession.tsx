@@ -44,75 +44,64 @@ export default function LiveSessionScreen({
 
   // Initialize TTS
   useEffect(() => {
-    const initTts = async () => {
+    const initializeTTS = async () => {
       try {
-        const ttsEnabled = await AsyncStorage.getItem('ttsEnabled');
-        setIsTtsEnabled(ttsEnabled === 'true');
-        
         await Tts.getInitStatus();
         Tts.setDefaultLanguage('en-US');
         Tts.setDefaultRate(0.5);
-        
-        Tts.addEventListener('tts-start', (event) => {
+
+        Tts.addEventListener('tts-start', (event: any) => {
           console.log('TTS started:', event);
           setIsSpeaking(true);
+          // Clear any existing timer
+          if (speechIntervalRef.current) {
+            clearInterval(speechIntervalRef.current);
+          }
+          
+          // Start highlighting words with timing based on speech rate
+          speechIntervalRef.current = setInterval(() => {
+            setHighlightedWordIndex((prev: number) => prev + 1);
+          }, 450); // Roughly 2.2 words per second for 0.5 speed
         });
-        
-        Tts.addEventListener('tts-finish', (event) => {
+
+        Tts.addEventListener('tts-finish', (event: any) => {
           console.log('TTS finished:', event);
           setIsSpeaking(false);
-          setCurrentSpeakingMessageId(null);
-          setHighlightedWordIndex(-1);
+          setHighlightedWordIndex(-1); // Reset highlighting
           
-          // Clear timer
+          // Clear the word highlighting timer
           if (speechIntervalRef.current) {
             clearInterval(speechIntervalRef.current);
             speechIntervalRef.current = null;
           }
         });
-        
-        Tts.addEventListener('tts-cancel', (event) => {
+
+        Tts.addEventListener('tts-cancel', (event: any) => {
           console.log('TTS cancelled:', event);
           setIsSpeaking(false);
-          setCurrentSpeakingMessageId(null);
-          setHighlightedWordIndex(-1);
+          setHighlightedWordIndex(-1); // Reset highlighting
           
-          // Clear timer
+          // Clear the word highlighting timer
           if (speechIntervalRef.current) {
             clearInterval(speechIntervalRef.current);
             speechIntervalRef.current = null;
           }
         });
+
       } catch (error: any) {
-        console.error('TTS init error:', error);
-        if (error.code === 'no_engine') {
+        console.error('Error initializing TTS:', error);
+        if (error.message?.includes('not initialized')) {
           Tts.requestInstallEngine();
         }
       }
     };
-    
-    initTts();
-    
+
+    initializeTTS();
+
     return () => {
       Tts.removeEventListener('tts-start', () => {});
       Tts.removeEventListener('tts-finish', () => {});
       Tts.removeEventListener('tts-cancel', () => {});
-      
-      // Clear timer on cleanup
-      if (speechIntervalRef.current) {
-        clearInterval(speechIntervalRef.current);
-        speechIntervalRef.current = null;
-      }
-      
-      try {
-        if (Platform.OS === 'ios') {
-          Tts.stop(false);
-        } else {
-          Tts.stop();
-        }
-      } catch (error) {
-        console.log('TTS cleanup error:', error);
-      }
     };
   }, []);
 
