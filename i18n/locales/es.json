@@ -1,0 +1,157 @@
+{
+  "common": {
+    "continue": "Continuar",
+    "done": "Listo",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "active": "Activo",
+    "back": "Atrás",
+    "minutesAgo": "hace {{minutes}}m",
+    "confidence": "{{percent}}% de confianza",
+    "loading": "Cargando...",
+    "error": "Error"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "history": "Historial",
+    "sessions": "Sesiones",
+    "profile": "Perfil"
+  },
+  "preferences": {
+    "title": "Personaliza tu Concierge",
+    "subtitle": "Elige la personalidad y el idioma preferido de tu Concierge",
+    "selectPersonality": "Seleccionar Personalidad",
+    "selectLanguage": "Seleccionar Idioma",
+    "selectTheme": "Seleccionar Tema",
+    "selectFont": "Seleccionar Fuente",
+    "selectLanguagePrompt": "Elige un idioma...",
+    "selectThemePrompt": "Elige un tema...",
+    "selectFontPrompt": "Elige una fuente...",
+    "selectBoth": "Por favor selecciona todas las opciones requeridas",
+    "saveError": "Error al guardar las preferencias",
+    "themes": {
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "fonts": {
+      "helvetica": "Helvetica",
+      "roboto": "Roboto",
+      "openSans": "Open Sans",
+      "patrickHand": "Patrick Hand"
+    },
+    "personalities": {
+      "friendly": "Amigable",
+      "professional": "Profesional",
+      "humorous": "Humorístico",
+      "casual": "Casual"
+    }
+  },
+  "home": {
+    "greeting": "¡Hola! 👋",
+    "subtitle": "¿Qué te gustaría saber hoy?",
+    "inputPlaceholder": "Pregúntame lo que quieras...",
+    "quickActions": "Acciones Rápidas",
+    "actions": {
+      "askAi": {
+        "title": "Preguntar a la IA",
+        "subtitle": "Obtén respuestas instantáneas"
+      },
+      "liveSession": {
+        "title": "Sesión en Vivo",
+        "subtitle": "Chat en tiempo real"
+      },
+      "history": {
+        "title": "Historial",
+        "subtitle": "Conversaciones anteriores"
+      }
+    }
+  },
+  "sessions": {
+    "title": "Sesiones en Vivo",
+    "subtitle": "{{count}} conversaciones activas",
+    "empty": {
+      "title": "Sin Sesiones Activas",
+      "subtitle": "Inicia una nueva conversación desde la pantalla principal",
+      "action": "Hacer una Pregunta"
+    }
+  },
+  "history": {
+    "title": "Historial",
+    "empty": {
+      "title": "Sin Historial",
+      "subtitle": "Tu historial de conversaciones aparecerá aquí"
+    },
+    "clearAll": "Borrar Todo",
+    "clearConfirm": "¿Estás seguro de que quieres borrar todo el historial?"
+  },
+  "profile": {
+    "title": "Perfil",
+    "settings": "Configuración",
+    "preferences": "Preferencias",
+    "language": "Idioma",
+    "theme": "Tema",
+    "notifications": "Notificaciones",
+    "about": "Acerca de",
+    "signOut": "Cerrar Sesión"
+  },
+  "login": {
+    "title": "Bienvenido",
+    "subtitle": "Inicia sesión para continuar",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "signIn": "Iniciar Sesión",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes una cuenta?",
+    "signUp": "Registrarse",
+    "error": {
+      "invalidEmail": "Por favor ingresa un correo válido",
+      "invalidPassword": "La contraseña debe tener al menos 6 caracteres"
+    }
+  },
+  "liveSession": {
+    "title": "Chat en Vivo",
+    "inputPlaceholder": "Escribe tu mensaje...",
+    "sendMessage": "Enviar",
+    "endSession": "Finalizar Sesión",
+    "sessionEnded": "Sesión Finalizada",
+    "typing": "La IA está escribiendo..."
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bienvenido a Wine",
+      "subtitle": "Tu concierge personal de vinos"
+    },
+    "features": {
+      "title": "Características",
+      "chat": "Chatea con IA sobre vinos",
+      "learn": "Aprende sobre regiones vinícolas",
+      "pair": "Obtén sugerencias de maridaje"
+    },
+    "start": "Comenzar"
+  },
+  "userInfo": {
+    "title": "Tu Información",
+    "name": "Nombre",
+    "website": "Sitio Web",
+    "nameRequired": "Por favor ingresa tu nombre",
+    "websiteRequired": "Por favor ingresa tu sitio web",
+    "save": "Guardar Cambios"
+  },
+  "fileUpload": {
+    "title": "Subir Documento",
+    "selectPrompt": "Selecciona un documento para subir",
+    "supportedFormats": "Formatos soportados: PDF, DOC, DOCX, TXT",
+    "selectDocument": "Seleccionar Documento",
+    "upload": "Subir Documento",
+    "uploadComplete": "¡Subida completa!",
+    "continue": "Continuar",
+    "noFileError": "Por favor selecciona un documento primero",
+    "uploadError": "Error al subir el documento",
+    "currentDocument": "Documento Actual",
+    "deleteDocument": "Eliminar Documento",
+    "noDocuments": "No hay documentos subidos",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este documento?",
+    "documentDeleted": "Documento eliminado con éxito",
+    "limitReached": "Solo puedes subir un documento. Elimina el actual para subir uno nuevo."
+  }
+}

@@ -2,17 +2,22 @@ import { Home, MessageSquare, History, User } from "lucide-react-native";
 import React from "react";
 import { useTheme } from "../theme/theme-context";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useTranslation } from 'react-i18next';
 
-import { MainRoutes } from '../types/navigation';
+import { MainRoutes, RootStackParamList } from '../types/navigation';
 import HomeScreen from '../screens/Home';
 import HistoryScreen from '../screens/History';
 import SessionsScreen from '../screens/Sessions';
 import ProfileScreen from '../screens/Profile';
+import LiveSessionScreen from '../screens/LiveSession';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function BottomTabNavigation() {
+const TabScreens = () => {
     const { colors } = useTheme();
+    const { t } = useTranslation();
 
     return (
         <Tab.Navigator
@@ -30,7 +35,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.Home} 
                 component={HomeScreen}
                 options={{
-                    title: MainRoutes.Home,
+                    title: t('navigation.home'),
                     tabBarIcon: ({ color }) => <Home size={24} color={color} />,
                 }}
             />
@@ -38,7 +43,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.History} 
                 component={HistoryScreen}
                 options={{
-                    title: MainRoutes.History,
+                    title: t('navigation.history'),
                     tabBarIcon: ({ color }) => <History size={24} color={color} />,
                 }}
             />
@@ -46,7 +51,7 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.Profile} 
                 component={ProfileScreen}
                 options={{
-                    title: MainRoutes.Profile,
+                    title: t('navigation.profile'),
                     tabBarIcon: ({ color }) => <User size={24} color={color} />,
                 }}
             />
@@ -54,10 +59,23 @@ export default function BottomTabNavigation() {
                 name={MainRoutes.Sessions} 
                 component={SessionsScreen} 
                 options={{
-                    title: MainRoutes.Sessions,
+                    title: t('navigation.sessions'),
                     tabBarIcon: ({ color }) => <MessageSquare size={24} color={color} />,
                 }}
             />
         </Tab.Navigator>
-    )
+    );
+};
+
+export default function BottomTabNavigation() {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="TabScreens" component={TabScreens} />
+            <Stack.Screen 
+                name={MainRoutes.LiveSession} 
+                component={LiveSessionScreen}
+                options={{ headerShown: false }}
+            />
+        </Stack.Navigator>
+    );
 }
