@@ -5,4 +5,5 @@ export interface Message {
   timestamp: number;
   confidence?: number;
   sources?: string[];
+  images?: string[];
 }

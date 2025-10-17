@@ -1,176 +1,175 @@
 import React, { useState } from "react";
 import {
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    KeyboardAvoidingView,
-    Platform,
-    Alert,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react-native";
 import { useAuth } from "../store/auth-store";
-import { useTheme } from "../theme/theme-context";
-import { LoginScreenProps } from "../types/navigation";
-import { MainRoutes } from "../types/navigation";
+import { LoginScreenProps, MainRoutes } from "../types/navigation";
+import { styles } from "../style/styles";
+import { useTheme } from "@ui-kitten/components";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQuestions } from "../store/question-store";
 
 export default function LoginScreen({ navigation }: LoginScreenProps) {
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [showPassword, setShowPassword] = useState<boolean>(false);
-    const [isLogin, setIsLogin] = useState<boolean>(true);
-    const { login, register } = useAuth();
-    const { colors } = useTheme();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
 
-    const handleSubmit = async () => {
-        if (!email || !password) {
-            Alert.alert("Error", "Please fill in all fields");
-            return;
-        }
+  const { login, register, isLoading } = useAuth();
+  const { clearAllQuestions } = useQuestions();
+  const colors = useTheme();
 
-        try {
-            if (isLogin) {
-                await login(email, password);
-            } else {
-                await register(email, password);
-            }
-            navigation.replace(MainRoutes.BottomTab)
-        } catch (error) {
-            Alert.alert("Error", "Authentication failed");
-        }
-    };
+  const handleSubmit = async () => {
+    if (isLoading) return;
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
 
-    return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={styles.keyboardView}
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+
+    if (password.length < 8 && !isLogin) {
+      Alert.alert("Error", "Password must be at least 8 characters long");
+      return;
+    }
+
+    try {
+      // if (isLogin) {
+      //   await login(email, password);
+      // } else {
+      //   await register(email, password);
+      //   // For new user registrations, clear any existing config
+      //   await AsyncStorage.removeItem("userConfig");
+      //   // No need to clear questions here as each user has their own questions storage
+      // }
+      navigation.replace(MainRoutes.Preferences);
+    } catch (error: any) {
+      let message = "Authentication failed";
+      if (error?.message) {
+        message = error.message;
+      }
+      Alert.alert("Error", message);
+    }
+  };
+
+  return (
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors["color-basic-000"] }]}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+      >
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: colors["color-basic-900"] }]}>
+            {isLogin ? "Welcome Back" : "Create Account"}
+          </Text>
+
+          <Text style={[styles.subtitle, { color: colors["color-basic-600"] }]}>
+            {isLogin ? "Sign in to continue" : "Join us to get started"}
+          </Text>
+
+          <View style={styles.form}>
+            {/* Email Input */}
+            <View
+              style={[
+                styles.inputContainer,
+                { borderColor: colors["color-basic-400"] },
+              ]}
             >
-                <View style={styles.content}>
-                    <Text style={[styles.title, { color: colors.text }]}>
-                        {isLogin ? "Welcome Back" : "Create Account"}
-                    </Text>
+              <Mail size={20} color={colors["color-basic-600"]} />
+              <TextInput
+                style={[styles.input, { color: colors["color-basic-900"] }]}
+                placeholder="Email"
+                placeholderTextColor={colors["color-basic-600"]}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
 
-                    <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                        {isLogin ? "Sign in to continue" : "Join us to get started"}
-                    </Text>
+            {/* Password Input */}
+            <View
+              style={[
+                styles.inputContainer,
+                { borderColor: colors["color-basic-400"] },
+              ]}
+            >
+              <Lock size={20} color={colors["color-basic-600"]} />
+              <TextInput
+                style={[styles.input, { color: colors["color-basic-900"] }]}
+                placeholder="Password"
+                placeholderTextColor={colors["color-basic-600"]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                {showPassword ? (
+                  <EyeOff size={20} color={colors["color-basic-600"]} />
+                ) : (
+                  <Eye size={20} color={colors["color-basic-600"]} />
+                )}
+              </TouchableOpacity>
+            </View>
 
-                    <View style={styles.form}>
-                        <View style={[styles.inputContainer, { borderColor: colors.border }]}>
-                            <Mail size={20} color={colors.textSecondary} />
-                            <TextInput
-                                style={[styles.input, { color: colors.text }]}
-                                placeholder="Email"
-                                placeholderTextColor={colors.textSecondary}
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                            />
-                        </View>
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={[
+                styles.button,
+                { backgroundColor: colors["color-primary-500"] },
+              ]}
+              onPress={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={colors["color-basic-100"]} />
+              ) : (
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { color: colors["color-basic-100"] },
+                  ]}
+                >
+                  {isLogin ? "Sign In" : "Create Account"}
+                </Text>
+              )}
+            </TouchableOpacity>
 
-                        <View style={[styles.inputContainer, { borderColor: colors.border }]}>
-                            <Lock size={20} color={colors.textSecondary} />
-                            <TextInput
-                                style={[styles.input, { color: colors.text }]}
-                                placeholder="Password"
-                                placeholderTextColor={colors.textSecondary}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry={!showPassword}
-                            />
-                            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                {showPassword ? (
-                                    <EyeOff size={20} color={colors.textSecondary} />
-                                ) : (
-                                    <Eye size={20} color={colors.textSecondary} />
-                                )}
-                            </TouchableOpacity>
-                        </View>
-
-                        <TouchableOpacity
-                            style={[styles.button, { backgroundColor: colors.primary }]}
-                            onPress={handleSubmit}
-                        >
-                            <Text style={[styles.buttonText, { color: colors.white }]}>
-                                {isLogin ? "Sign In" : "Create Account"}
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.switchButton}
-                            onPress={() => setIsLogin(!isLogin)}
-                        >
-                            <Text style={[styles.switchText, { color: colors.primary }]}>
-                                {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
-    );
+            {/* Switch between Login / Signup */}
+            <TouchableOpacity
+              style={styles.switchButton}
+              onPress={() => setIsLogin(!isLogin)}
+              disabled={isLoading}
+            >
+              <Text
+                style={[
+                  styles.switchText,
+                  { color: colors["color-primary-500"] },
+                ]}
+              >
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Sign in"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    keyboardView: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-        justifyContent: "center",
-        paddingHorizontal: 32,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: "bold",
-        textAlign: "center",
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        textAlign: "center",
-        marginBottom: 48,
-    },
-    form: {
-        width: "100%",
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        marginBottom: 16,
-    },
-    input: {
-        flex: 1,
-        marginLeft: 12,
-        fontSize: 16,
-    },
-    button: {
-        height: 56,
-        borderRadius: 12,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 8,
-        marginBottom: 24,
-    },
-    buttonText: {
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    switchButton: {
-        alignItems: "center",
-    },
-    switchText: {
-        fontSize: 14,
-        fontWeight: "500",
-    },
-});

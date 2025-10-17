@@ -1,0 +1,140 @@
+{
+  "common": {
+    "continue": "Magpatuloy",
+    "done": "Tapos na",
+    "cancel": "Kanselahin",
+    "save": "I-save",
+    "active": "Aktibo",
+    "back": "Balik",
+    "minutesAgo": "{{minutes}} minuto ang nakalipas",
+    "confidence": "{{percent}}% kumpiyansa",
+    "loading": "Naglo-load...",
+    "error": "May Error"
+  },
+  "navigation": {
+    "home": "Home",
+    "history": "Kasaysayan",
+    "sessions": "Mga Session",
+    "profile": "Profile"
+  },
+  "preferences": {
+    "title": "I-personalize ang Iyong Concierge",
+    "subtitle": "Piliin ang personalidad at wika ng iyong Concierge",
+    "selectPersonality": "Piliin ang Personalidad",
+    "selectLanguage": "Piliin ang Wika",
+    "selectTheme": "Piliin ang Theme",
+    "selectFont": "Piliin ang Font",
+    "selectLanguagePrompt": "Pumili ng wika...",
+    "selectThemePrompt": "Pumili ng theme...",
+    "selectFontPrompt": "Pumili ng font...",
+    "selectBoth": "Mangyaring piliin ang lahat ng kinakailangang opsyon",
+    "saveError": "Hindi na-save ang mga kagustuhan",
+    "themes": {
+      "light": "Maliwanag",
+      "dark": "Madilim"
+    },
+    "fonts": {
+      "helvetica": "Helvetica",
+      "roboto": "Roboto",
+      "openSans": "Open Sans",
+      "patrickHand": "Patrick Hand"
+    },
+    "personalities": {
+      "friendly": "Mabait",
+      "professional": "Propesyonal",
+      "humorous": "Nakakatawa",
+      "casual": "Casual"
+    }
+  },
+  "home": {
+    "greeting": "Kamusta! 👋",
+    "subtitle": "Ano ang gusto mong malaman ngayong araw?",
+    "inputPlaceholder": "Magtanong ka...",
+    "quickActions": "Mabilis na Aksyon",
+    "actions": {
+      "askAi": {
+        "title": "Magtanong sa AI",
+        "subtitle": "Instant na sagot"
+      },
+      "liveSession": {
+        "title": "Live na Session",
+        "subtitle": "Real-time na chat"
+      },
+      "history": {
+        "title": "Tingnan ang Kasaysayan",
+        "subtitle": "Nakaraang pag-uusap"
+      }
+    }
+  },
+  "sessions": {
+    "title": "Live na mga Session",
+    "subtitle": "{{count}} aktibong pag-uusap",
+    "empty": {
+      "title": "Walang Aktibong Session",
+      "subtitle": "Magsimula ng bagong pag-uusap mula sa home screen",
+      "action": "Magtanong"
+    }
+  },
+  "history": {
+    "title": "Kasaysayan",
+    "empty": {
+      "title": "Walang Kasaysayan",
+      "subtitle": "Dito lalabas ang iyong kasaysayan ng pag-uusap"
+    },
+    "clearAll": "Burahin Lahat",
+    "clearConfirm": "Sigurado ka bang gusto mong burahin ang lahat ng kasaysayan?"
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Mga Setting",
+    "preferences": "Mga Kagustuhan",
+    "language": "Wika",
+    "theme": "Theme",
+    "notifications": "Mga Notification",
+    "about": "Tungkol sa",
+    "signOut": "Mag-sign Out"
+  },
+  "login": {
+    "title": "Maligayang Pagdating",
+    "subtitle": "Mag-sign in para magpatuloy",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Mag-sign In",
+    "forgotPassword": "Nakalimutan ang Password?",
+    "noAccount": "Wala pang account?",
+    "signUp": "Mag-sign Up",
+    "error": {
+      "invalidEmail": "Mangyaring maglagay ng wastong email",
+      "invalidPassword": "Ang password ay dapat may hindi bababa sa 6 na karakter"
+    }
+  },
+  "liveSession": {
+    "title": "Live na Chat",
+    "inputPlaceholder": "I-type ang iyong mensahe...",
+    "sendMessage": "Ipadala",
+    "endSession": "Tapusin ang Session",
+    "sessionEnded": "Natapos na ang Session",
+    "typing": "Nagta-type ang AI..."
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Maligayang pagdating sa Wine",
+      "subtitle": "Ang iyong personal na wine concierge"
+    },
+    "features": {
+      "title": "Mga Features",
+      "chat": "Makipag-usap sa AI tungkol sa mga alak",
+      "learn": "Matuto tungkol sa mga rehiyon ng alak",
+      "pair": "Kumuha ng mga suhestiyon sa food pairing"
+    },
+    "start": "Magsimula"
+  },
+  "userInfo": {
+    "title": "Iyong Impormasyon",
+    "name": "Pangalan",
+    "website": "Website",
+    "nameRequired": "Mangyaring ilagay ang iyong pangalan",
+    "websiteRequired": "Mangyaring ilagay ang iyong website",
+    "save": "I-save ang mga Pagbabago"
+  }
+}

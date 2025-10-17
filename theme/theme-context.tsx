@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import themeData from './theme.json';
+import { getConfig } from '../store/config-storage';
 
 type ThemeType = 'light' | 'dark';
 type ThemeColors = typeof themeData.light;
@@ -8,7 +8,7 @@ type ThemeColors = typeof themeData.light;
 interface ThemeContextType {
   isDark: boolean;
   colors: ThemeColors;
-  toggleTheme: () => void;
+  setTheme: (theme: ThemeType) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -22,29 +22,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const loadStoredTheme = async () => {
     try {
-      const storedTheme = await AsyncStorage.getItem('theme');
-      if (storedTheme) {
-        setIsDark(storedTheme === 'dark');
+      const config = await getConfig();
+      if (config?.theme) {
+        setIsDark(config.theme === 'dark');
       }
     } catch (error) {
       console.error('Error loading stored theme:', error);
     }
   };
 
-  const toggleTheme = async () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    try {
-      await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
+  const setTheme = (theme: ThemeType) => {
+    setIsDark(theme === 'dark');
+    // Theme persistence is handled by the config storage in the Preferences screen
   };
+
+  useEffect(() => {
+    // This effect will run whenever isDark changes
+    console.log('Theme changed:', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   const colors = isDark ? themeData.dark : themeData.light;
 
   return (
-    <ThemeContext.Provider value={{ isDark, colors, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDark, colors, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
