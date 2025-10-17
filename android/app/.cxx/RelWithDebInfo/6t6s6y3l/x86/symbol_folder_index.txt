@@ -1,1 +1,0 @@
-/Applications/Development/busybeaver/wine/android/app/build/intermediates/cxx/RelWithDebInfo/6t6s6y3l/obj/x86

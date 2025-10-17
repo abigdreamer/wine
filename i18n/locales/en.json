@@ -140,7 +140,7 @@
   "fileUpload": {
     "title": "Upload Document",
     "selectPrompt": "Select a document to upload",
-    "supportedFormats": "Supported formats: PDF, DOC, DOCX, TXT",
+    "supportedFormats": "Supported formats: TXT",
     "selectDocument": "Select Document",
     "upload": "Upload Document",
     "uploadComplete": "Upload complete!",

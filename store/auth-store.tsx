@@ -131,6 +131,8 @@ export const [AuthProvider, useAuth] = createContextHook<AuthState>(() => {
 
       const data = await response.json();
 
+      console.log("Register response data:", data);
+
       if (!response.ok) {
         let errorMessage = "Registration failed";
         if (typeof data.detail === "string") {

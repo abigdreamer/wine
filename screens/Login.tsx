@@ -47,14 +47,14 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
     }
 
     try {
-      if (isLogin) {
-        await login(email, password);
-      } else {
-        await register(email, password);
-        // For new user registrations, clear any existing config
-        await AsyncStorage.removeItem("userConfig");
-        // No need to clear questions here as each user has their own questions storage
-      }
+      // if (isLogin) {
+      //   await login(email, password);
+      // } else {
+      //   await register(email, password);
+      //   // For new user registrations, clear any existing config
+      //   await AsyncStorage.removeItem("userConfig");
+      //   // No need to clear questions here as each user has their own questions storage
+      // }
       navigation.replace(MainRoutes.Preferences);
     } catch (error: any) {
       let message = "Authentication failed";

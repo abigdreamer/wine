@@ -25,6 +25,7 @@ export type RootStackParamList = {
   [MainRoutes.BottomTab]: undefined;
   [MainRoutes.LiveSession]: {
     id: string;
+    startVoiceChat?: boolean;
   };
   [MainRoutes.Preferences]: undefined;
   [MainRoutes.FileUpload]: {

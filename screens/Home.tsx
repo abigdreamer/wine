@@ -86,6 +86,23 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       },
     },
     {
+      title: "Voice Chat",
+      subtitle: "Talk with AI Concierge",
+      icon: Mic,
+      color: "#10B981", // Emerald green for voice
+      onPress: async () => {
+        // Create a new session and navigate with voice chat enabled
+        const config = await getConfig();
+        const wineryName = getWineryName(config?.website);
+        const newQuestion = addQuestion(`Voice conversation with ${wineryName} concierge.`);
+        console.log('Home: Created new voice question with status:', newQuestion.status);
+        navigation.push(MainRoutes.LiveSession, { 
+          id: newQuestion.id,
+          startVoiceChat: true // This will be handled in LiveSession to auto-open voice chat
+        });
+      },
+    },
+    {
       title: t("home.actions.history.title"),
       subtitle: t("home.actions.history.subtitle"),
       icon: Clock,

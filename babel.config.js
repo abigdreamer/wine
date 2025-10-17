@@ -5,7 +5,7 @@ module.exports = {
       moduleName: '@env',
       path: '.env',
       blacklist: null,
-      whitelist: ['OPENROUTER_KEY'],
+      whitelist: ['OPENROUTER_KEY', 'ELEVENLABS_API_KEY', 'LOCIZE_PROJECT_ID', 'LOCIZE_API_KEY'],
       safe: false,
       allowUndefined: true
     }]

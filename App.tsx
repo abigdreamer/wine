@@ -13,6 +13,7 @@ import { IconProvider } from "./src/services/IconProvider";
 import { ConfigProvider } from "./store/config-context";
 import { FontProvider } from "./theme/font-context";
 import { customDarkTheme, customLightTheme } from "./theme/custom-theme";
+import { ElevenLabsProvider } from "./src/contexts/ElevenLabsProvider";
 
 function AppContent() {
   const { isDark } = useTheme();
@@ -43,8 +44,10 @@ function App() {
           <ConfigProvider>
             <AuthProvider>
               <QuestionsProvider>
-                {/* Force app-wide re-render on language change */}
-                <AppContent key={i18n.language} />
+                <ElevenLabsProvider>
+                  {/* Force app-wide re-render on language change */}
+                  <AppContent key={i18n.language} />
+                </ElevenLabsProvider>
               </QuestionsProvider>
             </AuthProvider>
           </ConfigProvider>

@@ -13,20 +13,25 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Send, ArrowLeft, MoreVertical, Volume2, VolumeX } from "lucide-react-native";
+import { Send, ArrowLeft, MoreVertical, Volume2, VolumeX, Mic } from "lucide-react-native";
 import Tts from 'react-native-tts';
 import { useTheme } from "../theme/theme-context";
 import { useQuestions } from "../store/question-store";
 import { Message } from "../types/message";
 import { LiveSessionScreenProps } from "../types/navigation";
 import { getAIResponse } from "../src/services/ai";
+import { getConfig } from "../store/config-storage";
 import Markdown from "react-native-markdown-display";
- 
+import VoiceChat from "../src/components/VoiceChat";
+import RNFS from 'react-native-fs';
+import { useAuth } from "../store/auth-store";
+
+
 export default function LiveSessionScreen({
   navigation,
   route,
 }: LiveSessionScreenProps) {
-  const { id } = route.params;
+  const { id, startVoiceChat } = route.params;
   const [newMessage, setNewMessage] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState<boolean>(false);
@@ -34,68 +39,83 @@ export default function LiveSessionScreen({
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [currentSpeakingMessageId, setCurrentSpeakingMessageId] = useState<string | null>(null);
   const [highlightedWordIndex, setHighlightedWordIndex] = useState<number>(-1);
+  const [isVoiceChatVisible, setIsVoiceChatVisible] = useState<boolean>(false);
+  const [userConfig, setUserConfig] = useState<any>(null);
+
   const speechIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const ttsStartListener = useRef<((event: any) => void) | null>(null);
   const ttsFinishListener = useRef<((event: any) => void) | null>(null);
   const ttsCancelListener = useRef<((event: any) => void) | null>(null);
   const { colors } = useTheme();
+
   const { questions, updateQuestion } = useQuestions();
   const flatListRef = useRef<FlatList>(null);
   const typingAnimation = useRef(new Animated.Value(0)).current;
-
   const question = questions.find((q) => q.id === id);
 
-  // Initialize TTS
+
+  // Initialize TTS and load user config
   useEffect(() => {
+    let ttsStartSub: any;
+    let ttsFinishSub: any;
+    let ttsCancelSub: any;
+
     const initializeTTS = async () => {
       try {
+        // Load user configuration
+        const config = await getConfig();
+        setUserConfig(config);
+
+        // Auto-open voice chat if requested
+        if (startVoiceChat) {
+          setIsVoiceChatVisible(true);
+        }
+
         await Tts.getInitStatus();
         Tts.setDefaultLanguage('en-US');
-        Tts.setDefaultRate(0.5);
+        console.log('TTS initialized with default language en-US');
+        // FIX: Only pass one argument to setDefaultRate for iOS
+        // Tts.setDefaultRate(0.5);
+        console.log('TTS default rate set to 0.5');
 
-        // Create listener functions and store references
-        ttsStartListener.current = (event: any) => { 
+        // Add event listeners using new API
+        ttsStartSub = Tts.addListener('tts-start', (event: any) => {
           console.log('TTS started:', event);
           setIsSpeaking(true);
           // Clear any existing timer
           if (speechIntervalRef.current) {
             clearInterval(speechIntervalRef.current);
           }
-          
+
           // Start highlighting words with timing based on speech rate
           speechIntervalRef.current = setInterval(() => {
             setHighlightedWordIndex((prev: number) => prev + 1);
           }, 450); // Roughly 2.2 words per second for 0.5 speed
-        };
+        });
 
-        ttsFinishListener.current = (event: any) => {
+        ttsFinishSub = Tts.addListener('tts-finish', (event: any) => {
           console.log('TTS finished:', event);
           setIsSpeaking(false);
           setHighlightedWordIndex(-1); // Reset highlighting
-          
+
           // Clear the word highlighting timer
           if (speechIntervalRef.current) {
             clearInterval(speechIntervalRef.current);
             speechIntervalRef.current = null;
           }
-        };
+        });
 
-        ttsCancelListener.current = (event: any) => {
+        ttsCancelSub = Tts.addListener('tts-cancel', (event: any) => {
           console.log('TTS cancelled:', event);
           setIsSpeaking(false);
           setHighlightedWordIndex(-1); // Reset highlighting
-          
+
           // Clear the word highlighting timer
           if (speechIntervalRef.current) {
             clearInterval(speechIntervalRef.current);
             speechIntervalRef.current = null;
           }
-        };
-
-        // Add event listeners
-        Tts.addEventListener('tts-start', ttsStartListener.current);
-        Tts.addEventListener('tts-finish', ttsFinishListener.current);
-        Tts.addEventListener('tts-cancel', ttsCancelListener.current);
+        });
 
       } catch (error: any) {
         console.error('Error initializing TTS:', error);
@@ -132,7 +152,7 @@ export default function LiveSessionScreen({
         clearInterval(speechIntervalRef.current);
         speechIntervalRef.current = null;
       }
-      
+
       try {
         if (Platform.OS === 'ios') {
           Tts.stop(false);
@@ -145,16 +165,16 @@ export default function LiveSessionScreen({
     }
   };
 
-  // Speak message
+  // Speak message //////////////////////////////////////////////////////// Speak message //////////////////////////////////////////////////////
   const speakMessage = (text: string, messageId: string) => {
     if (!isTtsEnabled) return;
-    
+
     // Clear any existing timer
     if (speechIntervalRef.current) {
       clearInterval(speechIntervalRef.current);
       speechIntervalRef.current = null;
     }
-    
+
     try {
       if (Platform.OS === 'ios') {
         Tts.stop(false); // Stop any current speech
@@ -164,26 +184,26 @@ export default function LiveSessionScreen({
     } catch (error) {
       console.log('TTS stop error:', error);
     }
-    
+
     setCurrentSpeakingMessageId(messageId);
     setHighlightedWordIndex(0);
-    
+
     const cleanText = text.replace(/[*_~`]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-    
+
     // Start word highlighting timer
     const words = cleanText.split(/\s+/).filter(word => word.length > 0);
     const totalWords = words.length;
-    
+
     if (totalWords > 0) {
       // Estimate speech duration based on TTS rate and word count
       // At rate 0.5, roughly 120-150 words per minute
       const wordsPerSecond = 2.2; // approximately 132 words per minute
       const wordDuration = 1000 / wordsPerSecond; // milliseconds per word
-      
+
       // Start highlighting from first word
       let currentWordIndex = 0;
       setHighlightedWordIndex(0);
-      
+
       // Start the timer after a small delay to sync with TTS start
       setTimeout(() => {
         speechIntervalRef.current = setInterval(() => {
@@ -200,14 +220,14 @@ export default function LiveSessionScreen({
         }, wordDuration);
       }, 100); // Small delay to sync with TTS start
     }
-    
-    Tts.speak(cleanText); 
+
+    Tts.speak(cleanText);
   };
 
   // Render highlighted text for speaking messages
   const renderHighlightedText = (text: string, messageId: string) => {
     const isCurrentlySpeaking = currentSpeakingMessageId === messageId;
-    
+
     if (!isCurrentlySpeaking || highlightedWordIndex === -1) {
       return (
         <Markdown
@@ -227,16 +247,16 @@ export default function LiveSessionScreen({
     // Clean text and split into words for highlighting (same as speech processing)
     const cleanText = text.replace(/[*_~`]/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
     const words = cleanText.split(/\s+/).filter(word => word.length > 0);
-    
+
     return (
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
         {words.map((word, index) => (
           <Text
             key={index}
             style={[
-              { 
-                color: colors.text, 
-                fontSize: 16, 
+              {
+                color: colors.text,
+                fontSize: 16,
                 lineHeight: 22,
                 marginRight: 4,
                 paddingHorizontal: 2,
@@ -280,7 +300,7 @@ export default function LiveSessionScreen({
             sources: question.sources,
           }
         ];
-        
+
         // If question has stored messages, use those instead
         if (question.messages && question.messages.length > 0) {
           setMessages(question.messages);
@@ -297,7 +317,7 @@ export default function LiveSessionScreen({
         isUser: true,
         timestamp: Date.now(),
       };
-      
+
       setMessages([userMessage]);
       setIsTyping(true);
 
@@ -319,12 +339,12 @@ export default function LiveSessionScreen({
 
         const newMessages = [userMessage, aiMessage];
         setMessages(newMessages);
-        
+
         // Auto-speak AI response if TTS is enabled
         if (isTtsEnabled) {
           setTimeout(() => speakMessage(aiMessage.text, aiMessage.id), 500);
         }
-        
+
         // Update question in store with messages
         updateQuestion(question.id, {
           answer: aiMessage.text,
@@ -345,7 +365,7 @@ export default function LiveSessionScreen({
           }
         ];
         setMessages(errorMessages);
-        
+
         // Update question in store with error messages
         updateQuestion(question.id, {
           answer: "Sorry, I couldn't connect to the AI service.",
@@ -447,6 +467,56 @@ export default function LiveSessionScreen({
     }
   };
 
+  // Toggle voice chat visibility
+  const toggleVoiceChat = () => {
+    setIsVoiceChatVisible(!isVoiceChatVisible);
+  };
+
+  // Handle voice chat messages
+  const handleVoiceChatMessage = (message: Message) => {
+    setMessages((prev) => [...prev, message]);
+
+    // Update question in store with voice messages
+    if (question) {
+      updateQuestion(question.id, {
+        answer: message.isUser ? undefined : message.text,
+        confidence: message.confidence || 95,
+        sources: message.sources || ['ElevenLabs AI'],
+        status: "active",
+        messages: [...messages, message],
+      });
+    }
+  };
+
+  // Generate system prompt for voice chat
+  const generateSystemPrompt = () => {
+    if (!userConfig) return undefined;
+
+    let wineryName = "your winery";
+    if (userConfig.website) {
+      try {
+        const hostname = userConfig.website.replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+        wineryName = hostname.split('.')[0];
+      } catch {
+        // Keep default
+      }
+    }
+
+    return `You are a ${userConfig.personality || "friendly sommelier"} AI concierge for ${wineryName}.
+Always respond in ${userConfig.language || "English"}.
+User's name: ${userConfig.name || "Guest"}.
+
+You help guests with:
+- Wine tastings and tour information
+- Wine recommendations and pairings
+- Booking and reservations
+- General winery information
+- Special events and experiences
+
+Keep responses conversational, helpful, and concise for voice interaction.
+Maintain a warm, professional tone that reflects excellent hospitality.`;
+  };
+
   const renderMessage = ({ item }: { item: Message }) => (
     <View
       style={[
@@ -469,18 +539,18 @@ export default function LiveSessionScreen({
         ) : (
           <View>
             {renderHighlightedText(item.text, item.id)}
-            
+
             {isTtsEnabled && (
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                 {isSpeaking && currentSpeakingMessageId === item.id ? (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => {
                       // Clear timer when manually stopping
                       if (speechIntervalRef.current) {
                         clearInterval(speechIntervalRef.current);
                         speechIntervalRef.current = null;
                       }
-                      
+
                       try {
                         if (Platform.OS === 'ios') {
                           Tts.stop(false);
@@ -507,7 +577,7 @@ export default function LiveSessionScreen({
                     </Text>
                   </TouchableOpacity>
                 ) : (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     onPress={() => speakMessage(item.text, item.id)}
                     style={{
                       flexDirection: 'row',
@@ -575,6 +645,7 @@ export default function LiveSessionScreen({
     </View>
   );
 
+
   const renderTypingIndicator = () => (
     <View style={[styles.messageContainer, styles.aiMessage]}>
       <View style={[styles.messageBubble, { backgroundColor: colors.surface }]}>
@@ -640,7 +711,21 @@ export default function LiveSessionScreen({
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity 
+          <TouchableOpacity
+            onPress={toggleVoiceChat}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: isVoiceChatVisible ? colors.success + '20' : 'transparent'
+            }}
+          >
+            <Mic size={20} color={isVoiceChatVisible ? colors.success : colors.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={toggleTts}
             style={{
               width: 36,
@@ -663,6 +748,19 @@ export default function LiveSessionScreen({
           </TouchableOpacity>
         </View>
       </View>
+
+      {isVoiceChatVisible && (
+        <>
+          <VoiceChat
+            onMessage={handleVoiceChatMessage}
+            onConnect={() => console.log('Voice chat connected')}
+            onDisconnect={() => console.log('Voice chat disconnected')}
+            userId={question?.id || 'unknown'}
+            systemPrompt={generateSystemPrompt()}
+            isVisible={isVoiceChatVisible}
+          />
+        </>
+      )}
 
       <FlatList
         ref={flatListRef}

@@ -66,7 +66,7 @@ async function getUploadedFileInfo(): Promise<any> {
 }
 
 // Get file content from AsyncStorage if available
-async function getFileContent(): Promise<string> {
+export async function getFileContent(): Promise<string> {
   try {
     console.log('Getting file content from AsyncStorage');
     
@@ -114,7 +114,7 @@ export async function getAIResponse(
     console.log('File info:', fileInfo);
     
     const fileContent = await getFileContent();
-    console.log('File content available:', !!fileContent);
+    console.log('File content available:', fileContent);
 
     // Determine winery name from website URL if available, otherwise use generic term
     let wineryName = "your winery";
@@ -182,6 +182,7 @@ export async function getAIResponse(
   - Keep tone professional yet approachable, aligned with personality preference
   `;
 
+  console.log('Sending request to OpenRouter API with messages:', [{ role: "system", content: systemPrompt }, ...messages]);
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -196,9 +197,8 @@ export async function getAIResponse(
         }),
       }
     );
-
     if (!response.ok) {
-      console.error("OpenRouter API HTTP error:", response.status, response.statusText);
+      console.error("OpenRouter API HTTP error:", response);
       return {
         text: "Sorry, I couldn't connect to the AI service. Please try again."
       };
